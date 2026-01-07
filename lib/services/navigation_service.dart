@@ -19,7 +19,31 @@ class NavigationService extends GetxService {
     currentIndex.value = previousIndex.value;
   }
 
+  // Lazy-loaded pages to avoid self-reference
   List<Widget> pages() {
-    return [ HomeView(), const SearchView(), CreateThreadView(), const NotificationView(), const ProfileView()];
+    return [
+       HomeView(),          // HomeView should NOT call Get.put(NavigationService())!
+      const SearchView(),
+      const CreateThreadView(),
+      const NotificationView(),
+      const ProfileView(),
+    ];
+  }
+
+  Widget get currentPage {
+    switch (currentIndex.value) {
+      case 0:
+        return  HomeView();
+      case 1:
+        return const SearchView();
+      case 2:
+        return const CreateThreadView();
+      case 3:
+        return const NotificationView();
+      case 4:
+        return const ProfileView();
+      default:
+        return  HomeView();
+    }
   }
 }
