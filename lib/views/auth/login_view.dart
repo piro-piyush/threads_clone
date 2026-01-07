@@ -6,10 +6,50 @@ import 'package:thread_clone/controllers/auth_controller.dart';
 import 'package:thread_clone/routes/route_names.dart';
 import 'package:thread_clone/widgets/auth_text_field_widget.dart';
 
-class LoginView extends StatelessWidget {
-  LoginView({super.key});
+class LoginView extends StatefulWidget {
+  const LoginView({super.key});
 
-  final AuthController controller = Get.find<AuthController>();
+  @override
+  State<LoginView> createState() => _LoginViewState();
+}
+
+class _LoginViewState extends State<LoginView> {
+  final AuthController controller = Get.put(AuthController());
+   bool hidePassword = true;
+
+  /// 🔑 Login-only FormKey
+  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
+
+  late final TextEditingController emailController;
+  late final TextEditingController passwordController;
+
+  @override
+  void initState() {
+    super.initState();
+    emailController = TextEditingController();
+    passwordController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
+
+  void login() {
+    if (formKey.currentState!.validate()) {
+      if (!controller.loginLoading.value) {
+        controller.login(emailController.text, passwordController.text,context);
+      }
+    }
+  }
+
+  void togglePasswordVisibility() {
+    setState(() {
+      hidePassword = !hidePassword;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -17,62 +57,35 @@ class LoginView extends StatelessWidget {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
+            padding: EdgeInsets.all(16),
             child: Form(
-              key: controller.loginFormKey,
+              key: formKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Center(
-                    child: Image.asset(
-                      "assets/images/logo.png",
-                      width: 60,
-                      height: 60,
-                    ),
-                  ),
+                  Center(child: Image.asset("assets/images/logo.png", width: 60, height: 60)),
 
                   const SizedBox(height: 20),
 
-                  const Text(
-                    "Login",
-                    style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
-                  ),
+                  const Text("Login", style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold)),
                   const Text("Welcome back"),
 
                   const SizedBox(height: 20),
 
                   /// EMAIL
-                  AuthTextFieldWidget(
-                    controller: controller.loginEmailController,
-                    labelText: "Email",
-                    hintText: "Email",
-                    validatorCallback:
-                    ValidationBuilder().required().email().build(),
-                  ),
+                  AuthTextFieldWidget(controller: emailController, labelText: "Email", hintText: "Email", validatorCallback: ValidationBuilder().required().email().build()),
 
                   const SizedBox(height: 20),
 
                   /// PASSWORD
-                  Obx(() {
-                    return AuthTextFieldWidget(
-                      controller: controller.loginPasswordController,
+                  AuthTextFieldWidget(
+                      controller: passwordController,
                       labelText: "Password",
                       hintText: "Password",
-                      obscureText: controller.hidePassword.value,
-                      validatorCallback: ValidationBuilder()
-                          .required()
-                          .minLength(6)
-                          .maxLength(20)
-                          .build(),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          controller.hidePassword.value
-                              ? Icons.visibility_off
-                              : Icons.visibility,
-                        ),
-                        onPressed: controller.togglePasswordVisibility,
-                      ),
-                    );
-                  }),
+                      obscureText: hidePassword,
+                      validatorCallback: ValidationBuilder().required().minLength(6).maxLength(20).build(),
+                      suffixIcon: IconButton(icon: Icon(hidePassword ? Icons.visibility_off : Icons.visibility), onPressed: togglePasswordVisibility),
+                    ),
 
                   const SizedBox(height: 20),
 
@@ -82,14 +95,8 @@ class LoginView extends StatelessWidget {
                     height: 64,
                     child: Obx(() {
                       return ElevatedButton(
-                        onPressed: controller.isLoading.value
-                            ? null
-                            : controller.login,
-                        child: controller.isLoading.value
-                            ? const CircularProgressIndicator(
-                          color: Colors.black,
-                        )
-                            : const Text("Submit"),
+                        onPressed: () => controller.loginLoading.value ? null : login(),
+                        child: controller.loginLoading.value ? const CircularProgressIndicator(color: Colors.black) : const Text("Submit"),
                       );
                     }),
                   ),
@@ -103,11 +110,8 @@ class LoginView extends StatelessWidget {
                         children: [
                           TextSpan(
                             text: "Register",
-                            style:
-                            const TextStyle(fontWeight: FontWeight.bold),
-                            recognizer: TapGestureRecognizer()
-                              ..onTap =
-                                  () => Get.toNamed(RouteNames.register),
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                            recognizer: TapGestureRecognizer()..onTap = () => Get.toNamed(RouteNames.register),
                           ),
                         ],
                       ),
