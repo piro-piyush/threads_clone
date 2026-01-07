@@ -3,7 +3,23 @@ import 'package:thread_clone/routes/route_names.dart';
 import 'package:thread_clone/views/auth/login_view.dart';
 import 'package:thread_clone/views/auth/register_view.dart';
 import 'package:thread_clone/views/home/home_view.dart';
+import 'package:thread_clone/widgets/bottom_nav_bar_widget.dart';
 
 class Routes {
-  static final List<GetPage> pages = [GetPage(name: RouteNames.home, page: () => HomeView()), GetPage(name: RouteNames.login, page: () => LoginView()), GetPage(name: RouteNames.register, page: () => RegisterView())];
+  static final List<GetPage> pages = [
+    GetPage(
+      name: RouteNames.login,
+      page: () => LoginView(),
+    ),
+
+    GetPage(
+      name: RouteNames.register,
+      page: () => RegisterView(),
+    ),
+
+    GetPage(
+      name: RouteNames.home,
+      page: () => BottomNavBarWidget(),
+    ),
+  ];
 }
