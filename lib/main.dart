@@ -15,10 +15,7 @@ void main() async {
 
   await dotenv.load(fileName: '.env');
   await GetStorage.init();
-  await Supabase.initialize(
-    url: dotenv.env['SUPABASE_URL']!,
-    anonKey: dotenv.env['SUPABASE_KEY']!,
-  );
+
   runApp(const MyApp());
 }
 
