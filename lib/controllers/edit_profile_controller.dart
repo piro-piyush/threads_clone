@@ -3,13 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:thread_clone/services/supabase_service.dart';
+import 'package:thread_clone/services/auth_service.dart';
+import 'package:thread_clone/services/user_service.dart';
 import 'package:thread_clone/utils/env.dart';
 import 'package:thread_clone/utils/helper.dart';
 import 'package:uuid/uuid.dart';
 
 class EditProfileController extends GetxController {
-  final SupabaseService supabaseService = Get.find();
+  final AuthService authService = Get.find<AuthService>();
+  final UserService userService = Get.find<UserService>();
+
 
   // UI Controllers (ONLY HERE)
   late TextEditingController nameController;
@@ -34,7 +37,7 @@ class EditProfileController extends GetxController {
   void onInit() {
     super.onInit();
 
-    final metadata = supabaseService.user?.userMetadata ?? {};
+    final metadata = authService.user?.userMetadata ?? {};
 
     _initialName = metadata['name'] ?? '';
     _initialDescription = metadata['description'] ?? '';
@@ -82,7 +85,7 @@ class EditProfileController extends GetxController {
     isUpdating.value = true;
 
     try {
-      final uid = supabaseService.user!.id;
+      final uid = authService.user!.id;
       String? finalImageUrl = imageUrl.value;
 
       // ---------------- UPLOAD IMAGE IF NEW ----------------
@@ -92,11 +95,11 @@ class EditProfileController extends GetxController {
 
         final compressedFile = await compressImage(selectedImage.value!, tempPath);
 
-        final uploadedUrl = await uploadImageToSupabase(file: compressedFile, bucketName: Env.s3Bucket, folder: 'users/$uid/profile-images');
+        final uploadedUrl = await userService.uploadImage(file: compressedFile, bucket: Env.s3Bucket, folder: 'users/$uid/profile-images');
 
         // Delete old image if exists
         if (_initialImageUrl.isNotEmpty && _initialImageUrl != uploadedUrl) {
-          await deleteImage(_initialImageUrl, Env.s3Bucket);
+          await userService.deleteFile(Env.s3Bucket, _initialImageUrl);
         }
 
         finalImageUrl = uploadedUrl;
@@ -118,7 +121,8 @@ class EditProfileController extends GetxController {
 
       if (updatedData.isNotEmpty) {
         // Update via Supabase Auth user metadata
-        await SupabaseService.client.auth.updateUser(UserAttributes(data: updatedData));
+        await userService.updateProfile(updatedData);
+        // await authService.supabase.auth.updateUser(UserAttributes(data: updatedData));
 
         // Update local initial values
         _initialName = nameController.text.trim();

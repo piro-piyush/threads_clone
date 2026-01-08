@@ -1,26 +1,24 @@
 import 'package:get/get.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:thread_clone/services/storage_service.dart';
-import 'package:thread_clone/utils/env.dart';
+import 'package:thread_clone/utils/mixins/supabase_mixin.dart';
 
-class SupabaseService extends GetxService {
-  static final SupabaseClient client = Supabase.instance.client;
-
+class AuthService extends GetxService with SupabaseMixin {
   final Rx<User?> _currentUser = Rx<User?>(null);
 
   User? get user => _currentUser.value;
 
+  GoTrueClient get auth => supabase.auth;
+
   @override
   void onInit() async {
     super.onInit();
-    // Initialize Supabase
-    await Supabase.initialize(url: Env.supabaseUrl, anonKey: Env.supabaseKey);
 
     // Load user from current session if exists
-    _currentUser.value = client.auth.currentUser;
+    _currentUser.value = supabase.auth.currentUser;
 
     // Update local storage
-    _updateStoredSession(client.auth.currentSession);
+    _updateStoredSession(supabase.auth.currentSession);
 
     // Listen for auth changes
     listenAuthChanges();
@@ -36,7 +34,7 @@ class SupabaseService extends GetxService {
   }
 
   void listenAuthChanges() {
-    client.auth.onAuthStateChange.listen((data) {
+    supabase.auth.onAuthStateChange.listen((data) {
       final event = data.event;
       final session = data.session;
 
