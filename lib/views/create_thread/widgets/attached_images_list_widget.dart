@@ -1,26 +1,35 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:thread_clone/views/create_thread/widgets/attached_image_widget.dart';
 
-class AttachedImagesListWidget extends StatelessWidget {
-  const AttachedImagesListWidget({super.key, required this.images, required this.onRemove});
+class AttachedImageWidget extends StatelessWidget {
+  const AttachedImageWidget({super.key, required this.image, required this.onRemove});
 
-  final List<File> images;
-  final Function(int) onRemove;
+  final File image;
+  final VoidCallback onRemove;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 100,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: images.length,
-        separatorBuilder: (_, _) => const SizedBox(width: 12),
-        itemBuilder: (context, index) {
-          final image = images[index];
-          return AttachedImageWidget(image: image, onRemove: () => onRemove(index));
-        },
-      ),
+    return Stack(
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: Image.file(image, fit: BoxFit.cover),
+        ),
+
+        // ❌ Remove button
+        Positioned(
+          top: 4,
+          right: 4,
+          child: GestureDetector(
+            onTap: onRemove,
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: const BoxDecoration(shape: BoxShape.circle, color: Colors.black54),
+              child: const Icon(Icons.close, size: 16, color: Colors.white),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
