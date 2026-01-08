@@ -4,7 +4,7 @@ import 'package:get/get.dart';
 import 'package:thread_clone/controllers/edit_profile_controller.dart';
 import 'package:thread_clone/utils/helper.dart';
 import 'package:thread_clone/utils/type_def.dart';
-import 'package:thread_clone/widgets/loader.dart';
+import 'package:thread_clone/widgets/status_loader_widget.dart';
 import 'package:thread_clone/widgets/profile_image_widget.dart';
 
 class EditProfileView extends StatelessWidget {
@@ -20,10 +20,15 @@ class EditProfileView extends StatelessWidget {
         title: const Text("Edit Profile"),
         centerTitle: true,
         actions: [
-          TextButton(
-            onPressed: controller.saveProfile,
-            child: const Text("Save", style: TextStyle(fontWeight: FontWeight.w600)),
-          ),
+          Obx(() {
+            if (controller.isUpdating.value) {
+              return SizedBox.shrink();
+            }
+            return TextButton(
+              onPressed: controller.saveProfile,
+              child: const Text("Save", style: TextStyle(fontWeight: FontWeight.w600)),
+            );
+          }),
         ],
       ),
       body: Obx(() {
@@ -31,7 +36,7 @@ class EditProfileView extends StatelessWidget {
         //   return const StatusLoader(icon: Icons.person, title: "Loading  Profile", subtitle: "Please wait a moment");
         // }
         if (controller.isUpdating.value) {
-          return const StatusLoader(icon: Icons.sync_rounded, title: "Updating Profile", subtitle: "Please wait, saving your changes");
+          return const StatusLoaderWidget(icon: Icons.sync_rounded, title: "Updating Profile", subtitle: "Please wait, saving your changes");
         }
 
         return SingleChildScrollView(
@@ -41,6 +46,7 @@ class EditProfileView extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+
                 /// Avatar Section
                 Center(
                   child: Stack(
@@ -75,10 +81,19 @@ class EditProfileView extends StatelessWidget {
                 const SizedBox(height: 32),
 
                 /// Form Fields
-                _ProfileField(label: "Name", hint: "Your name", readOnly: false, controller: controller.nameController, validatorCallback: ValidationBuilder().required().minLength(2).maxLength(50).build()),
+                _ProfileField(label: "Name",
+                    hint: "Your name",
+                    readOnly: false,
+                    controller: controller.nameController,
+                    validatorCallback: ValidationBuilder().required().minLength(2).maxLength(50).build()),
                 const SizedBox(height: 16),
 
-                _ProfileField(label: "Email", hint: "your@email.com", keyboardType: TextInputType.emailAddress, readOnly: true, controller: controller.emailController, validatorCallback: ValidationBuilder().required().email().build()),
+                _ProfileField(label: "Email",
+                    hint: "your@email.com",
+                    keyboardType: TextInputType.emailAddress,
+                    readOnly: true,
+                    controller: controller.emailController,
+                    validatorCallback: ValidationBuilder().required().email().build()),
                 const SizedBox(height: 16),
 
                 _ProfileField(
@@ -121,7 +136,11 @@ class _ProfileField extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: Theme.of(context).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600)),
+        Text(label, style: Theme
+            .of(context)
+            .textTheme
+            .bodySmall
+            ?.copyWith(fontWeight: FontWeight.w600)),
         const SizedBox(height: 12),
         TextFormField(
           maxLines: maxLines,

@@ -1,15 +1,20 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:form_validator/form_validator.dart';
+import 'package:thread_clone/views/create_thread/widgets/attached_images_list_widget.dart';
 
 class InputSectionWidget extends StatelessWidget {
-  const InputSectionWidget({super.key, required this.formKey, required this.controller, required this.name, required this.onAddClicked, required this.imagesLength, this.userImageUrl});
+  const InputSectionWidget({super.key, required this.formKey, required this.controller, required this.name, required this.onAddClicked, this.userImageUrl, this.image, required this.onRemove});
 
   final GlobalKey<FormState> formKey;
   final TextEditingController controller;
   final String name;
 
   final VoidCallback onAddClicked;
-  final int imagesLength;
   final String? userImageUrl;
+  final File? image;
+  final VoidCallback onRemove;
 
   @override
   Widget build(BuildContext context) {
@@ -35,19 +40,18 @@ class InputSectionWidget extends StatelessWidget {
                     TextFormField(
                       controller: controller,
                       maxLength: 1000,
-                      maxLines: null,
-                      decoration: const InputDecoration(hintText: "Type a thread…", border: InputBorder.none, counterText: ""),
+                      minLines: 1,
+                      maxLines: 10,
+                      validator: ValidationBuilder().required().maxLength(1000).build(),
+                      decoration: const InputDecoration(hintText: "Type a thread…", border: InputBorder.none),
                     ),
                   ],
                 ),
 
-                Row(
-                  spacing: 6,
-                  children: [
-                    IconButton(onPressed: onAddClicked, icon: const Icon(Icons.attach_file)),
-                    Text(imagesLength == 1 ? "1 image" : "$imagesLength images", style: Theme.of(context).textTheme.bodySmall),
-                  ],
-                ),
+                IconButton(onPressed: onAddClicked, icon: const Icon(Icons.attach_file)),
+
+                /// ---------------- IMAGE PREVIEW ----------------
+                if (image != null) ...[AttachedImageWidget(image: image!, onRemove: onRemove)],
               ],
             ),
           ),
