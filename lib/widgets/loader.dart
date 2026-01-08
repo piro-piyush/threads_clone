@@ -15,7 +15,7 @@ class StatusLoader extends StatelessWidget {
         // Blur background
         BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-          child: Container(color: Colors.black.withOpacity(0.18)),
+          child: Container(color: Colors.black.withValues(alpha: 0.18)),
         ),
 
         // Animated card
@@ -36,7 +36,7 @@ class StatusLoader extends StatelessWidget {
               decoration: BoxDecoration(
                 color: Theme.of(context).cardColor,
                 borderRadius: BorderRadius.circular(22),
-                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 30, offset: const Offset(0, 12))],
+                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.15), blurRadius: 30, offset: const Offset(0, 12))],
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -45,7 +45,7 @@ class StatusLoader extends StatelessWidget {
                   Container(
                     height: 54,
                     width: 54,
-                    decoration: BoxDecoration(shape: BoxShape.circle, color: Theme.of(context).colorScheme.primary.withOpacity(0.12)),
+                    decoration: BoxDecoration(shape: BoxShape.circle, color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.12)),
                     child: Icon(icon, size: 28, color: Theme.of(context).colorScheme.primary),
                   ),
 

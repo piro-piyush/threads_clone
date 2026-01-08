@@ -3,7 +3,6 @@ import 'package:form_validator/form_validator.dart';
 import 'package:get/get.dart';
 import 'package:thread_clone/controllers/edit_profile_controller.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:thread_clone/services/supabase_service.dart';
 import 'package:thread_clone/utils/type_def.dart';
 import 'package:thread_clone/widgets/loader.dart';
 import 'package:thread_clone/widgets/profile_image_widget.dart';
