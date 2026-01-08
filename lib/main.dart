@@ -29,7 +29,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: theme,
       initialBinding: GeneralBindings(),
-      initialRoute: StorageService.userSession != null ? RouteNames.home : RouteNames.login,
+      initialRoute: StorageService.isLoggedIn? RouteNames.home : RouteNames.login,
     );
   }
 }

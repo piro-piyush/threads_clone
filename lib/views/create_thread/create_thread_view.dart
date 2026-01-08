@@ -77,7 +77,7 @@ class CreateThreadView extends StatelessWidget {
                   child: ListView.separated(
                     scrollDirection: Axis.horizontal,
                     itemCount: controller.images.length,
-                    separatorBuilder: (_, __) => const SizedBox(width: 12),
+                    separatorBuilder: (_, _) => const SizedBox(width: 12),
                     itemBuilder: (context, index) {
                       final image = controller.images[index];
 
