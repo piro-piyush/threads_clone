@@ -5,7 +5,6 @@ import 'package:thread_clone/routes/route_names.dart';
 import 'package:thread_clone/services/storage_service.dart';
 import 'package:thread_clone/services/supabase_service.dart';
 import 'package:thread_clone/utils/helper.dart';
-import 'package:thread_clone/utils/storage_keys.dart';
 
 class AuthController extends GetxController {
   final registerLoading = false.obs;
@@ -18,7 +17,7 @@ class AuthController extends GetxController {
     registerLoading.value = false;
 
     if (response.user != null) {
-      StorageService.storage.write(StorageKeys.userSession, response.session!.toJson());
+      StorageService.setUserSession(response.session!.toJson());
       Get.offAllNamed(RouteNames.home);
     } else {
       showSnackBar("Error", "Something went wrong");
@@ -26,15 +25,14 @@ class AuthController extends GetxController {
   }
 
   // * Login user
-  Future<void> login(String email, String password,BuildContext context) async {
+  Future<void> login(String email, String password, BuildContext context) async {
     loginLoading.value = true;
     try {
       final AuthResponse response = await SupabaseService.client.auth.signInWithPassword(email: email, password: password);
       loginLoading.value = false;
       if (response.user != null && response.session != null) {
-        StorageService.storage.write(StorageKeys.userSession, response.session!.toJson());
+        StorageService.setUserSession(response.session!.toJson());
         Get.offAllNamed(RouteNames.home);
-        // Navigator.pushNamedAndRemoveUntil(context, RouteNames.home, (route) => false);
       }
     } on AuthException catch (error) {
       loginLoading.value = false;
