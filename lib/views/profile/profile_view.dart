@@ -35,7 +35,7 @@ class ProfileView extends StatelessWidget {
       appBar: AppBar(
         title: Icon(Icons.language),
         centerTitle: false,
-        actions: [IconButton(onPressed: () {}, icon: Icon(Icons.sort))],
+        actions: [IconButton(onPressed: () => Get.toNamed(RouteNames.settings), icon: Icon(Icons.settings))],
       ),
       body: DefaultTabController(
         length: 2,
