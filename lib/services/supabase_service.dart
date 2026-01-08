@@ -13,25 +13,52 @@ class SupabaseService extends GetxService {
   @override
   void onInit() async {
     super.onInit();
+    // Initialize Supabase
     await Supabase.initialize(url: Env.supabaseUrl, anonKey: Env.supabaseKey);
+
+    // Load user from current session if exists
     _currentUser.value = client.auth.currentUser;
+
+    // Update local storage
+    _updateStoredSession(client.auth.currentSession);
+
+    // Listen for auth changes
     listenAuthChanges();
   }
 
-  // * first load the status
+  // Update _currentUser from a stored session
   void updateUserFromSession() {
-    var session = Session.fromJson(StorageService.userSession!);
-    _currentUser.value = session?.user;
+    final sessionJson = StorageService.userSession;
+    if (sessionJson != null) {
+      final session = Session.fromJson(sessionJson);
+      _currentUser.value = session?.user;
+    }
   }
 
   void listenAuthChanges() {
-    client.auth.onAuthStateChange.listen((state) {
-      final event = state.event;
-      if (event == AuthChangeEvent.userUpdated) {
-        _currentUser.value = state.session?.user;
-      } else if (event == AuthChangeEvent.signedIn) {
-        _currentUser.value = state.session?.user;
+    client.auth.onAuthStateChange.listen((data) {
+      final event = data.event;
+      final session = data.session;
+
+      if (session != null) {
+        _currentUser.value = session.user;
+
+        // Update local storage whenever auth state changes
+        _updateStoredSession(session);
+      }
+
+      // Clear local session if signed out
+      if (event == AuthChangeEvent.signedOut) {
+        _currentUser.value = null;
+        StorageService.clearUserSession();
       }
     });
+  }
+
+  // ---------------- HELPER ----------------
+  void _updateStoredSession(Session? session) {
+    if (session != null) {
+      StorageService.updateUserSession(session.toJson());
+    }
   }
 }

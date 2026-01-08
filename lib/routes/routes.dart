@@ -3,6 +3,7 @@ import 'package:thread_clone/routes/route_names.dart';
 import 'package:thread_clone/views/auth/login_view.dart';
 import 'package:thread_clone/views/auth/register_view.dart';
 import 'package:thread_clone/views/profile/edit_profile_view.dart';
+import 'package:thread_clone/views/settings/settings_view.dart';
 import 'package:thread_clone/widgets/bottom_nav_bar_widget.dart';
 
 class Routes {
@@ -25,6 +26,10 @@ class Routes {
     GetPage(
       name: RouteNames.editProfile,
       page: () => EditProfileView(),
+    ),
+    GetPage(
+      name: RouteNames.settings,
+      page: () => SettingsView(),
     ),
   ];
 }
