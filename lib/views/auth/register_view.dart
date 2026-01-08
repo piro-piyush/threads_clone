@@ -14,7 +14,8 @@ class RegisterView extends StatefulWidget {
 }
 
 class _RegisterViewState extends State<RegisterView> {
-  final AuthController controller = Get.put(AuthController());  bool hidePassword = true;
+  final AuthController controller = Get.put(AuthController());
+  bool hidePassword = true;
 
   /// 🔑 Register-only FormKey
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
@@ -62,7 +63,7 @@ class _RegisterViewState extends State<RegisterView> {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
             child: Form(
               key: formKey,
               child: Column(
@@ -89,33 +90,33 @@ class _RegisterViewState extends State<RegisterView> {
 
                   /// PASSWORD
                   AuthTextFieldWidget(
-                      controller: passwordController,
-                      labelText: "Password",
-                      hintText: "Enter password",
-                      obscureText: hidePassword,
-                      validatorCallback: ValidationBuilder(requiredMessage: "Password is required").required().minLength(6).maxLength(20).build(),
-                      suffixIcon: IconButton(icon: Icon(hidePassword ? Icons.visibility_off : Icons.visibility), onPressed: togglePasswordVisibility),
-                    ),
+                    controller: passwordController,
+                    labelText: "Password",
+                    hintText: "Enter password",
+                    obscureText: hidePassword,
+                    validatorCallback: ValidationBuilder(requiredMessage: "Password is required").required().minLength(6).maxLength(20).build(),
+                    suffixIcon: IconButton(icon: Icon(hidePassword ? Icons.visibility_off : Icons.visibility), onPressed: togglePasswordVisibility),
+                  ),
 
                   const SizedBox(height: 20),
 
                   /// CONFIRM PASSWORD
-                   AuthTextFieldWidget(
-                      controller: confirmPasswordController,
-                      labelText: "Confirm Password",
-                      hintText: "Enter password again",
-                      obscureText: hidePassword,
-                      validatorCallback: (val) {
-                        if (val == null || val.isEmpty) {
-                          return "Password is required";
-                        }
-                        if (val != passwordController.text) {
-                          return "Passwords do not match";
-                        }
-                        return null;
-                      },
-                      suffixIcon: IconButton(icon: Icon(hidePassword ? Icons.visibility_off : Icons.visibility), onPressed: togglePasswordVisibility),
-                    ),
+                  AuthTextFieldWidget(
+                    controller: confirmPasswordController,
+                    labelText: "Confirm Password",
+                    hintText: "Enter password again",
+                    obscureText: hidePassword,
+                    validatorCallback: (val) {
+                      if (val == null || val.isEmpty) {
+                        return "Password is required";
+                      }
+                      if (val != passwordController.text) {
+                        return "Passwords do not match";
+                      }
+                      return null;
+                    },
+                    suffixIcon: IconButton(icon: Icon(hidePassword ? Icons.visibility_off : Icons.visibility), onPressed: togglePasswordVisibility),
+                  ),
 
                   const SizedBox(height: 20),
 
