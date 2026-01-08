@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:thread_clone/controllers/create_thread_controller.dart';
-import 'package:thread_clone/services/supabase_service.dart';
 
 class CreateThreadView extends StatelessWidget {
   const CreateThreadView({super.key});
