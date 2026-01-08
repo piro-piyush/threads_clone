@@ -43,10 +43,22 @@ Future<File> compressImage(File file, String outputPath, {int quality = 70}) asy
 
 Future<String> uploadImageToSupabase({required File file, required String bucketName, required String folder, String contentType = 'image/jpeg'}) async {
   final uuid = const Uuid();
-  final fileName = "${uuid.v4()}.jpg";
+  final fileName = "${uuid.v6()}.jpg";
   final filePath = '$folder/$fileName';
 
-  await Supabase.instance.client.storage.from(bucketName).upload(filePath, file, fileOptions: FileOptions(upsert: true, contentType: contentType,));
+  // 🔹 Upload file to Supabase storage
+  try {
+    await Supabase.instance.client.storage.from(bucketName).upload(filePath, file, fileOptions: FileOptions(upsert: true, contentType: contentType));
 
-  return filePath;
+    // 🔹 Get public URL
+    final publicUrl = Supabase.instance.client.storage.from(bucketName).getPublicUrl(filePath);
+
+    return publicUrl;
+  } catch (e) {
+    throw Exception('Upload failed: $e');
+  }
+}
+
+Future<void> deleteImage(String url, String bucketName) async {
+  await Supabase.instance.client.storage.from(bucketName).remove([url]);
 }
