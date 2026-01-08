@@ -1,0 +1,172 @@
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:thread_clone/controllers/edit_profile_controller.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:thread_clone/widgets/profile_image_widget.dart';
+
+class EditProfileView extends StatefulWidget {
+  EditProfileView({super.key});
+
+  @override
+  State<EditProfileView> createState() => _EditProfileViewState();
+}
+
+class _EditProfileViewState extends State<EditProfileView> {
+  late TextEditingController nameController;
+  late TextEditingController emailController;
+  late TextEditingController descriptionController;
+  final controller = Get.put(EditProfileController());
+
+  @override
+  void initState() {
+    super.initState();
+    nameController = TextEditingController(text: "Piyush Vishwakarma");
+    descriptionController = TextEditingController(text: "🚀 Flutter Developer | Full-Stack App Engineer | Flutter | Node.js | Python | MongoDB | REST APIs | Firebase | GetX | Hive");
+    emailController = TextEditingController(text: "piyush72717272@gmail.com");
+  }
+
+  void openImagePickerSheet() {
+    Get.bottomSheet(
+      Container(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        decoration: const BoxDecoration(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _PickerTile(icon: Icons.camera_alt, title: "Take Photo", onTap: () => controller.pickAndUpload(ImageSource.camera)),
+              _PickerTile(icon: Icons.photo_library, title: "Choose from Gallery", onTap: () => controller.pickAndUpload(ImageSource.gallery)),
+              const Divider(),
+              _PickerTile(icon: Icons.close, title: "Cancel", onTap: () => Get.back()),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Edit Profile"),
+        centerTitle: true,
+        actions: [
+          TextButton(
+            onPressed: () {},
+            child: const Text("Save", style: TextStyle(fontWeight: FontWeight.w600)),
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            /// Avatar Section
+            Center(
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Obx(() {
+                    return Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        ProfileImageWidget(image: controller.selectedImage.value, radius: 70, imageUrl: controller.imageUrl.value),
+
+                        // 🔄 Uploading Loader Overlay
+                        if (controller.isUploading.value)
+                          Container(
+                            width: 150,
+                            height: 150,
+                            decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.4), shape: BoxShape.circle),
+                            child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                          ),
+                      ],
+                    );
+                  }),
+
+                  Positioned(
+                    bottom: 6,
+                    right: 6,
+                    child: GestureDetector(
+                      onTap: openImagePickerSheet,
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.surface,
+                          shape: BoxShape.circle,
+                          boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(0, 2))],
+                        ),
+                        child: Icon(Icons.camera_alt, size: 18, color: theme.colorScheme.onSurface),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 32),
+
+            /// Form Fields
+            _ProfileField(label: "Name", hint: "Your name", readOnly: false, controller: nameController),
+            const SizedBox(height: 16),
+
+            _ProfileField(label: "Email", hint: "your@email.com", keyboardType: TextInputType.emailAddress, readOnly: true, controller: emailController),
+            const SizedBox(height: 16),
+
+            _ProfileField(label: "Description", hint: "Write something about you", maxLines: 3, readOnly: false, controller: descriptionController),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ProfileField extends StatelessWidget {
+  final String label;
+  final String hint;
+  final int maxLines;
+  final bool readOnly;
+  final TextInputType keyboardType;
+  final TextEditingController? controller;
+
+  const _ProfileField({required this.label, required this.hint, this.maxLines = 1, this.keyboardType = TextInputType.text, required this.readOnly, this.controller});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: Theme.of(context).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600)),
+        const SizedBox(height: 12),
+        TextFormField(
+          maxLines: maxLines,
+          readOnly: readOnly,
+          controller: controller,
+          keyboardType: keyboardType,
+          decoration: InputDecoration(
+            hintText: hint,
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _PickerTile extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final VoidCallback onTap;
+
+  const _PickerTile({required this.icon, required this.title, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(leading: Icon(icon), title: Text(title), onTap: onTap);
+  }
+}
