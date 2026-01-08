@@ -26,7 +26,7 @@ class NavigationService extends GetxService {
       const SearchView(),
       const CreateThreadView(),
       const NotificationView(),
-      const ProfileView(),
+       ProfileView(),
     ];
   }
 
@@ -41,7 +41,7 @@ class NavigationService extends GetxService {
       case 3:
         return const NotificationView();
       case 4:
-        return const ProfileView();
+        return  ProfileView();
       default:
         return  HomeView();
     }
