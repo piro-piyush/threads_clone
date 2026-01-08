@@ -1,10 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:thread_clone/routes/route_names.dart';
-import 'package:thread_clone/utils/styles/button_styles.dart';
+
+import 'package:thread_clone/services/supabase_service.dart';
+import 'package:thread_clone/utils/helper.dart';
+import 'package:thread_clone/views/profile/widgets/profile_header_widget.dart';
+import 'package:thread_clone/views/profile/widgets/silver_app_bar_delegate.dart';
 
 class ProfileView extends StatelessWidget {
-  const ProfileView({super.key});
+  ProfileView({super.key});
+
+  final SupabaseService supabaseService = Get.find<SupabaseService>();
+
+  void shareProfile({required String? uid, required String? name}) {
+    if (uid == null || uid.isEmpty || name == null || name.isEmpty) {
+      showSnackBar("Error", "Failed to share profile");
+      return;
+    }
+
+    // Construct your profile URL
+    final profileUrl = "https://threads_clone.com/user/$uid";
+
+    // Text to share
+    final shareText = "Check out $name's profile:\n$profileUrl";
+
+    // Trigger system share sheet with proper null safety
+    SharePlus.instance.share(ShareParams(text: shareText, title: "Share Profile", subject: "Profile of $name"));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,40 +48,15 @@ class ProfileView extends StatelessWidget {
                 automaticallyImplyLeading: false,
                 flexibleSpace: Padding(
                   padding: EdgeInsetsGeometry.symmetric(horizontal: 16),
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text("Piyush", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                              SizedBox(width: context.width * 0.7, child: Text("Let's build threads together and make out life interesting..❤️")),
-                            ],
-                          ),
-                          CircleAvatar(radius: 40, backgroundImage: AssetImage('assets/images/avatar.png')),
-                        ],
-                      ),
-                      SizedBox(height: 16),
-                      Row(
-                        spacing: 16,
-                        children: [
-                          Expanded(
-                            child: OutlinedButton(
-                              onPressed: () =>
-                                  Get.toNamed(RouteNames.editProfile),
-                              style: customOutlineStyle(),
-                              child: Text("Edit Profile"),
-                            ),
-                          ),
-                          Expanded(
-                            child: OutlinedButton(onPressed: () {}, style: customOutlineStyle(), child: Text("Share Profile")),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+                  child: Obx(() {
+                    return ProfileHeaderWidget(
+                      name: supabaseService.user?.userMetadata?['name'] ?? "Loading",
+                      description: supabaseService.user?.userMetadata?['description'] ?? "No Description",
+                      imageUrl: supabaseService.user?.userMetadata?['image_url'],
+                      onEditTapped: () => Get.toNamed(RouteNames.editProfile),
+                      onShareTapped: () => shareProfile(uid: supabaseService.user?.id, name: supabaseService.user?.userMetadata?['name']),
+                    );
+                  }),
                 ),
               ),
               SliverPersistentHeader(
@@ -81,29 +79,5 @@ class ProfileView extends StatelessWidget {
         ),
       ),
     );
-  }
-}
-
-class SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
-  final TabBar _tabBar;
-
-  SliverAppBarDelegate(this._tabBar);
-
-  @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
-    return Container(color: Colors.black, child: _tabBar);
-  }
-
-  @override
-  // TODO: implement maxExtent
-  double get maxExtent => _tabBar.preferredSize.height;
-
-  @override
-  // TODO: implement minExtent
-  double get minExtent => _tabBar.preferredSize.height;
-
-  @override
-  bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) {
-    return false;
   }
 }
