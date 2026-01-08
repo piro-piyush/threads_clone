@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:thread_clone/routes/route_names.dart';
 import 'package:thread_clone/routes/routes.dart';
 import 'package:thread_clone/services/storage_service.dart';
+import 'package:thread_clone/utils/env.dart';
 import 'package:thread_clone/utils/theme/theme.dart';
 import 'package:get/get.dart';
 
@@ -13,6 +15,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await dotenv.load(fileName: '.env');
+  await Supabase.initialize(url: Env.supabaseUrl, anonKey: Env.supabaseKey);
   await GetStorage.init();
 
   runApp(const MyApp());

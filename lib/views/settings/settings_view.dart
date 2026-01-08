@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:thread_clone/routes/route_names.dart';
-import 'package:thread_clone/services/supabase_service.dart';
+import 'package:thread_clone/services/auth_service.dart';
 
 class SettingsView extends StatelessWidget {
-  const SettingsView({super.key});
+  SettingsView({super.key});
+
+  final AuthService authService = Get.find<AuthService>();
 
   void _showLogoutDialog(BuildContext context) {
     showDialog(
@@ -26,7 +28,7 @@ class SettingsView extends StatelessWidget {
               Navigator.of(ctx).pop(); // Close dialog first
               try {
                 // Call Supabase logout
-                await SupabaseService.client.auth.signOut();
+                await authService.supabase.auth.signOut();
 
                 // Navigate to login
                 Get.offAllNamed(RouteNames.login);
@@ -79,7 +81,6 @@ class SettingsView extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text("Settings"), centerTitle: true),
       body: SingleChildScrollView(
-
         child: Column(
           children: [
             /// Account

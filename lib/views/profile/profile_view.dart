@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:thread_clone/routes/route_names.dart';
-
-import 'package:thread_clone/services/supabase_service.dart';
+import 'package:thread_clone/services/auth_service.dart';
 import 'package:thread_clone/utils/helper.dart';
 import 'package:thread_clone/views/profile/widgets/profile_header_widget.dart';
 import 'package:thread_clone/views/profile/widgets/silver_app_bar_delegate.dart';
@@ -11,7 +10,7 @@ import 'package:thread_clone/views/profile/widgets/silver_app_bar_delegate.dart'
 class ProfileView extends StatelessWidget {
   ProfileView({super.key});
 
-  final SupabaseService supabaseService = Get.find<SupabaseService>();
+  final AuthService authService = Get.find<AuthService>();
 
   void shareProfile({required String? uid, required String? name}) {
     if (uid == null || uid.isEmpty || name == null || name.isEmpty) {
@@ -50,11 +49,11 @@ class ProfileView extends StatelessWidget {
                   padding: EdgeInsetsGeometry.symmetric(horizontal: 16),
                   child: Obx(() {
                     return ProfileHeaderWidget(
-                      name: supabaseService.user?.userMetadata?['name'] ?? "Loading",
-                      description: supabaseService.user?.userMetadata?['description'] ?? "No Description",
-                      imageUrl: supabaseService.user?.userMetadata?['image_url'],
+                      name: authService.user?.userMetadata?['name'] ?? "Loading",
+                      description: authService.user?.userMetadata?['description'] ?? "No Description",
+                      imageUrl: authService.user?.userMetadata?['image_url'],
                       onEditTapped: () => Get.toNamed(RouteNames.editProfile),
-                      onShareTapped: () => shareProfile(uid: supabaseService.user?.id, name: supabaseService.user?.userMetadata?['name']),
+                      onShareTapped: () => shareProfile(uid: authService.user?.id, name: authService.user?.userMetadata?['name']),
                     );
                   }),
                 ),

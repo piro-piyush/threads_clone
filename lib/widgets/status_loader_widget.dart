@@ -1,12 +1,12 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 
-class StatusLoader extends StatelessWidget {
+class StatusLoaderWidget extends StatelessWidget {
   final IconData icon;
   final String title;
   final String subtitle;
 
-  const StatusLoader({super.key, required this.icon, required this.title, required this.subtitle});
+  const StatusLoaderWidget({super.key, required this.icon, required this.title, required this.subtitle});
 
   @override
   Widget build(BuildContext context) {
