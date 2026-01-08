@@ -1,15 +1,30 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 
 class ProfileImageWidget extends StatelessWidget {
-  const ProfileImageWidget({super.key, this.image, this.imageUrl, required this.radius});
+  const ProfileImageWidget({
+    super.key,
+    this.image,
+    this.imageUrl,
+    required this.radius,
+  });
 
   final File? image;
   final String? imageUrl;
   final double radius;
+
   @override
   Widget build(BuildContext context) {
+    ImageProvider avatar;
+
+    if (image != null) {
+      avatar = FileImage(image!);
+    } else if (imageUrl != null && imageUrl!.isNotEmpty) {
+      avatar = NetworkImage(imageUrl!);
+    } else {
+      avatar = const AssetImage('assets/images/avatar.png');
+    }
+
     return Container(
       padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
@@ -18,11 +33,7 @@ class ProfileImageWidget extends StatelessWidget {
       ),
       child: CircleAvatar(
         radius: radius,
-        backgroundImage: image != null
-            ? FileImage(image!)
-            : imageUrl != null
-            ? NetworkImage(imageUrl!)
-            : const AssetImage('assets/images/avatar.png') as ImageProvider,
+        backgroundImage: avatar,
       ),
     );
   }

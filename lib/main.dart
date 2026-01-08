@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:thread_clone/routes/route_names.dart';
 import 'package:thread_clone/routes/routes.dart';
 import 'package:thread_clone/services/storage_service.dart';
