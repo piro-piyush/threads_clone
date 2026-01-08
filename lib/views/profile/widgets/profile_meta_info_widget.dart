@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:thread_clone/services/supabase_service.dart';
 
 class ProfileMetaInfoWidget extends StatelessWidget {
   const ProfileMetaInfoWidget({super.key, required this.name, required this.description, this.imageUrl});
