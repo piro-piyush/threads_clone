@@ -11,11 +11,9 @@ class SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
   }
 
   @override
-  // TODO: implement maxExtent
   double get maxExtent => _tabBar.preferredSize.height;
 
   @override
-  // TODO: implement minExtent
   double get minExtent => _tabBar.preferredSize.height;
 
   @override
