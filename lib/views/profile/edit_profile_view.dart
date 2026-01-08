@@ -3,6 +3,7 @@ import 'package:form_validator/form_validator.dart';
 import 'package:get/get.dart';
 import 'package:thread_clone/controllers/edit_profile_controller.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:thread_clone/utils/helper.dart';
 import 'package:thread_clone/utils/type_def.dart';
 import 'package:thread_clone/widgets/loader.dart';
 import 'package:thread_clone/widgets/profile_image_widget.dart';
@@ -11,26 +12,6 @@ class EditProfileView extends StatelessWidget {
   EditProfileView({super.key});
 
   final controller = Get.put(EditProfileController());
-
-  void openImagePickerSheet() {
-    Get.bottomSheet(
-      Container(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        decoration: const BoxDecoration(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
-        child: SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _PickerTile(icon: Icons.camera_alt, title: "Take Photo", onTap: () => controller.pickProfileImage(ImageSource.camera)),
-              _PickerTile(icon: Icons.photo_library, title: "Choose from Gallery", onTap: () => controller.pickProfileImage(ImageSource.gallery)),
-              const Divider(),
-              _PickerTile(icon: Icons.close, title: "Cancel", onTap: () => Get.back()),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -71,7 +52,12 @@ class EditProfileView extends StatelessWidget {
                         bottom: 6,
                         right: 6,
                         child: GestureDetector(
-                          onTap: openImagePickerSheet,
+                          onTap: () async {
+                            final source = await openImagePickerSheet();
+                            if (source != null) {
+                              controller.pickProfileImage(source);
+                            }
+                          },
                           child: Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
@@ -152,18 +138,5 @@ class _ProfileField extends StatelessWidget {
         ),
       ],
     );
-  }
-}
-
-class _PickerTile extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final VoidCallback onTap;
-
-  const _PickerTile({required this.icon, required this.title, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(leading: Icon(icon), title: Text(title), onTap: onTap);
   }
 }

@@ -5,6 +5,7 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:thread_clone/widgets/picker_tile_widget.dart';
 import 'package:uuid/uuid.dart';
 
 void showSnackBar(String title, String message) {
@@ -17,6 +18,41 @@ void showSnackBar(String title, String message) {
     colorText: Colors.white,
     snackStyle: SnackStyle.GROUNDED,
     padding: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+  );
+}
+
+Future<ImageSource?> openImagePickerSheet() async {
+  return await Get.bottomSheet<ImageSource>(
+    Container(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      decoration: BoxDecoration(
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+        color: Colors.grey[900],
+      ),
+      child: SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            PickerTileWidget(
+              icon: Icons.camera_alt,
+              title: "Take Photo",
+              onTap: () => Get.back(result: ImageSource.camera),
+            ),
+            PickerTileWidget(
+              icon: Icons.photo_library,
+              title: "Choose from Gallery",
+              onTap: () => Get.back(result: ImageSource.gallery),
+            ),
+            const Divider(),
+            PickerTileWidget(
+              icon: Icons.close,
+              title: "Cancel",
+              onTap: () => Get.back(), // returns null
+            ),
+          ],
+        ),
+      ),
+    ),
   );
 }
 
