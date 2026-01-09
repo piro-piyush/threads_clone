@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:form_validator/form_validator.dart';
-import 'package:thread_clone/views/create_thread/widgets/attached_images_list_widget.dart';
+import 'package:thread_clone/views/thread/widgets/attached_images_list_widget.dart';
 import 'package:thread_clone/widgets/circular_image_widget.dart';
 
 class InputSectionWidget extends StatelessWidget {

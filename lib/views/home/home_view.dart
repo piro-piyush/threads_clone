@@ -95,6 +95,9 @@ class HomeView extends GetView<HomeController> {
                   delegate: SliverChildBuilderDelegate((context, index) {
                     final thread = controller.threads[index];
                     return ThreadCardWidget(
+                      onTap: () {
+                        Get.toNamed(RouteNames.thread, arguments: thread.id);
+                      },
                       thread: thread,
                       uid: controller.uid,
                       onLikeTapped: controller.onLikeTapped,

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/state_manager.dart';
-import 'package:thread_clone/views/create_thread/create_thread_view.dart';
 import 'package:thread_clone/views/home/home_view.dart';
 import 'package:thread_clone/views/notification/notification_view.dart';
 import 'package:thread_clone/views/profile/profile_view.dart';
 import 'package:thread_clone/views/search/search_view.dart';
+import 'package:thread_clone/views/thread/create_thread_view.dart';
 
 class NavigationService extends GetxService {
   RxInt currentIndex = 0.obs;
