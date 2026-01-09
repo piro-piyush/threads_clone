@@ -22,7 +22,7 @@ class NavigationService extends GetxService {
   // Lazy-loaded pages to avoid self-reference
   List<Widget> pages() {
     return [
-       HomeView(),          // HomeView should NOT call Get.put(NavigationService())!
+       HomeView(),
       const SearchView(),
       const CreateThreadView(),
       const NotificationView(),
