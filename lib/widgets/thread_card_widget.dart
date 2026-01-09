@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:thread_clone/models/thread_model.dart';
 import 'package:thread_clone/widgets/thread_card_bottom_widget.dart';
 import 'package:thread_clone/widgets/thread_card_image_widget.dart';

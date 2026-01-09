@@ -53,7 +53,6 @@ class ThreadsService extends GetxService with SupabaseMixin {
 
       return threads;
     } catch (e) {
-      print('fetchThreads error: $e');
       return [];
     }
   }

@@ -10,7 +10,7 @@ class ProfileFieldWidget extends StatelessWidget {
   final TextEditingController? controller;
   final ValidatorCallback validatorCallback;
 
-  const ProfileFieldWidget({required this.label, required this.hint, this.maxLines = 1, this.keyboardType = TextInputType.text, required this.readOnly, this.controller, required this.validatorCallback});
+  const ProfileFieldWidget({super.key, required this.label, required this.hint, this.maxLines = 1, this.keyboardType = TextInputType.text, required this.readOnly, this.controller, required this.validatorCallback});
 
   @override
   Widget build(BuildContext context) {
