@@ -82,6 +82,9 @@ class ThreadsWidget extends StatelessWidget {
               onCommentTapped: (thread) {
                 Get.toNamed(RouteNames.addComment, arguments: thread.id);
               },
+              onTap: () {
+                Get.toNamed(RouteNames.thread, arguments: thread.id);
+              },
               onShareTapped: profileController.onShareTapped,
               uid: profileController.uid,
 

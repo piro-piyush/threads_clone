@@ -20,7 +20,6 @@ class ThreadsService extends GetxService with SupabaseMixin {
       'image': image,
       'allow_replies': allowReplies,
       'likes': [],
-      'is_deleted': false,
       'is_archived': false,
       'is_edited': false,
     });
@@ -43,7 +42,7 @@ class ThreadsService extends GetxService with SupabaseMixin {
         allow_replies,
         user:posted_by (email, metadata)
       ''')
-          .eq('is_deleted', false)
+
           .order('created_at', ascending: false);
 
       return (res as List)
@@ -111,11 +110,10 @@ class ThreadsService extends GetxService with SupabaseMixin {
 
   // ---------------- DELETE THREAD (SOFT) ----------------
   Future<void> deleteThread(String threadId) async {
-    await updateRow(
+    await deleteRow(
       table,
       whereColumn: 'id',
       whereValue: threadId,
-      data: {'is_deleted': true},
     );
   }
 
@@ -214,7 +212,7 @@ class ThreadsService extends GetxService with SupabaseMixin {
           user:posted_by (email, metadata)
         ''')
           .eq('posted_by', uid!)
-          .eq('is_deleted', false)
+
           .order('created_at', ascending: false);
 
       return (res as List)
