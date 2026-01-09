@@ -131,7 +131,7 @@ class EditProfileController extends GetxController {
       }
 
       Get.back();
-      Get.snackbar("Success", "Profile updated successfully ✅");
+      showSnackBar("Success", "Profile updated successfully ✅");
     } on StorageException catch (e) {
       debugPrint("❌ Storage error: $e");
       Get.snackbar("Error", "Failed to upload image ❌");
