@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:thread_clone/controllers/profile_controller.dart';
 import 'package:thread_clone/routes/route_names.dart';
 import 'package:thread_clone/services/auth_service.dart';
 import 'package:thread_clone/utils/helper.dart';
 import 'package:thread_clone/views/profile/widgets/profile_header_widget.dart';
 import 'package:thread_clone/views/profile/widgets/silver_app_bar_delegate.dart';
+import 'package:thread_clone/widgets/replies_widget.dart';
+import 'package:thread_clone/widgets/threads_widget.dart';
 
 class ProfileView extends StatelessWidget {
   ProfileView({super.key});
@@ -25,16 +28,28 @@ class ProfileView extends StatelessWidget {
     final shareText = "Check out $name's profile:\n$profileUrl";
 
     // Trigger system share sheet with proper null safety
-    SharePlus.instance.share(ShareParams(text: shareText, title: "Share Profile", subject: "Profile of $name"));
+    SharePlus.instance.share(
+      ShareParams(
+        text: shareText,
+        title: "Share Profile",
+        subject: "Profile of $name",
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final ProfileController controller = Get.put(ProfileController());
     return Scaffold(
       appBar: AppBar(
         title: Icon(Icons.language),
         centerTitle: false,
-        actions: [IconButton(onPressed: () => Get.toNamed(RouteNames.settings), icon: Icon(Icons.settings))],
+        actions: [
+          IconButton(
+            onPressed: () => Get.toNamed(RouteNames.settings),
+            icon: Icon(Icons.settings),
+          ),
+        ],
       ),
       body: DefaultTabController(
         length: 2,
@@ -49,11 +64,17 @@ class ProfileView extends StatelessWidget {
                   padding: EdgeInsetsGeometry.symmetric(horizontal: 16),
                   child: Obx(() {
                     return ProfileHeaderWidget(
-                      name: authService.user?.userMetadata?['name'] ?? "Loading",
-                      description: authService.user?.userMetadata?['description'] ?? "No Description",
+                      name:
+                          authService.user?.userMetadata?['name'] ?? "Loading",
+                      description:
+                          authService.user?.userMetadata?['description'] ??
+                          "No Description",
                       imageUrl: authService.user?.userMetadata?['image_url'],
                       onEditTapped: () => Get.toNamed(RouteNames.editProfile),
-                      onShareTapped: () => shareProfile(uid: authService.user?.id, name: authService.user?.userMetadata?['name']),
+                      onShareTapped: () => shareProfile(
+                        uid: authService.user?.id,
+                        name: authService.user?.userMetadata?['name'],
+                      ),
                     );
                   }),
                 ),
@@ -74,7 +95,7 @@ class ProfileView extends StatelessWidget {
               ),
             ];
           },
-          body: TabBarView(children: [Text("Threads"), Text("Replies")]),
+          body: TabBarView(children: [ThreadsWidget(), RepliesWidget()]),
         ),
       ),
     );
