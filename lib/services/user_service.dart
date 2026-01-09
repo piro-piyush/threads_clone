@@ -27,7 +27,10 @@ class UserService extends GetxService with SupabaseMixin {
     await updateUserMetadata(data);
 
     // Update in users table
-    await updateRow(table, whereColumn: 'id', whereValue: uid, data: data);
+    final dbData = {
+      'metadata':data,
+    };
+    await updateRow(table, whereColumn: 'id', whereValue: uid, data: dbData);
   }
 
   // ---------------- UPLOAD USER AVATAR ----------------

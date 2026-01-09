@@ -44,6 +44,29 @@ class SettingsView extends StatelessWidget {
     );
   }
 
+  void _showPrivacyDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Colors.grey[900],
+        title: const Text(
+          "Privacy Settings",
+          style: TextStyle(color: Colors.white),
+        ),
+        content: const Text(
+          "Privacy settings feature is coming soon 🔒",
+          style: TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text("OK", style: TextStyle(color: Colors.blueAccent)),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showAboutDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -55,7 +78,35 @@ class SettingsView extends StatelessWidget {
           "This is a demo app built for learning Flutter and Supabase.\n"
           "All rights reserved © 2026",
         ),
-        actions: [TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text("OK"))],
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text("OK"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showNotificationDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Colors.grey[900],
+        title: const Text(
+          "Notifications",
+          style: TextStyle(color: Colors.white),
+        ),
+        content: const Text(
+          "Notification feature is coming soon 🚀",
+          style: TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text("OK", style: TextStyle(color: Colors.blueAccent)),
+          ),
+        ],
       ),
     );
   }
@@ -71,7 +122,12 @@ class SettingsView extends StatelessWidget {
           "support@threads_clone.com\n\n"
           "Or check FAQs for common issues.",
         ),
-        actions: [TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text("Close"))],
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text("Close"),
+          ),
+        ],
       ),
     );
   }
@@ -85,22 +141,57 @@ class SettingsView extends StatelessWidget {
           children: [
             /// Account
             const SizedBox(height: 16),
-            ListTile(leading: const Icon(Icons.person), title: const Text("Edit Profile"), subtitle: const Text("Update your name, bio, or profile picture"), onTap: () => Get.toNamed(RouteNames.editProfile)),
-            ListTile(leading: const Icon(Icons.lock), title: const Text("Change Password"), subtitle: const Text("Update your password"), onTap: () => Get.toNamed(RouteNames.changePassword)),
+            ListTile(
+              leading: const Icon(Icons.person),
+              title: const Text("Edit Profile"),
+              subtitle: const Text("Update your name, bio, or profile picture"),
+              onTap: () => Get.toNamed(RouteNames.editProfile),
+            ),
+            ListTile(
+              leading: const Icon(Icons.lock),
+              title: const Text("Change Password"),
+              subtitle: const Text("Update your password"),
+              onTap: () => Get.toNamed(RouteNames.changePassword),
+            ),
 
             /// Privacy & Safety
             const Divider(),
-            ListTile(leading: const Icon(Icons.privacy_tip), title: const Text("Privacy Settings"), subtitle: const Text("Manage who can see your posts"), onTap: () => Get.toNamed(RouteNames.privacy)),
-            ListTile(leading: const Icon(Icons.notifications), title: const Text("Notifications"), subtitle: const Text("Control notification preferences"), onTap: () => Get.toNamed(RouteNames.notifications)),
+            ListTile(
+              leading: const Icon(Icons.privacy_tip),
+              title: const Text("Privacy Settings"),
+              subtitle: const Text("Manage who can see your posts"),
+              onTap: () => _showPrivacyDialog(context),
+            ),
+            ListTile(
+              leading: const Icon(Icons.notifications),
+              title: const Text("Notifications"),
+              subtitle: const Text("Control notification preferences"),
+              onTap: () => _showNotificationDialog(context),
+            ),
 
             /// Support
             const Divider(),
-            ListTile(leading: const Icon(Icons.help_outline), title: const Text("Help & Support"), subtitle: const Text("Get help or report an issue"), onTap: () => _showHelpDialog(context)),
-            ListTile(leading: const Icon(Icons.info_outline), title: const Text("About"), subtitle: const Text("Version info and app details"), onTap: () => _showAboutDialog(context)),
+            ListTile(
+              leading: const Icon(Icons.help_outline),
+              title: const Text("Help & Support"),
+              subtitle: const Text("Get help or report an issue"),
+              onTap: () => _showHelpDialog(context),
+            ),
+            ListTile(
+              leading: const Icon(Icons.info_outline),
+              title: const Text("About"),
+              subtitle: const Text("Version info and app details"),
+              onTap: () => _showAboutDialog(context),
+            ),
 
             /// Logout
             const Divider(),
-            ListTile(leading: const Icon(Icons.exit_to_app), title: const Text("Log Out"), subtitle: const Text("Sign out of your account"), onTap: () => _showLogoutDialog(context)),
+            ListTile(
+              leading: const Icon(Icons.exit_to_app),
+              title: const Text("Log Out"),
+              subtitle: const Text("Sign out of your account"),
+              onTap: () => _showLogoutDialog(context),
+            ),
           ],
         ),
       ),
