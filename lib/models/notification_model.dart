@@ -117,8 +117,8 @@ class NotificationModel {
     // Safely map type string to enum
     final typeEnum = NotificationTypeExtension.fromString(type);
 
-    // Get the user's name if available
-    final fromName = fromUser?.metadata.name ?? "Someone";
+
+
 
     switch (typeEnum) {
       case NotificationType.mention:
