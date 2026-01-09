@@ -14,6 +14,7 @@ class ThreadCardWidget extends StatelessWidget {
     required this.onCommentTapped,
     required this.onShareTapped,
     required this.uid,
+    required this.onTap,
     this.showDivider = true,
     this.child,
     required this.canEditThread,
@@ -31,6 +32,7 @@ class ThreadCardWidget extends StatelessWidget {
   final bool Function(ThreadModel thread) canDeleteThread;
   final Function(ThreadModel thread) editThread;
   final Function(ThreadModel thread) deleteThread;
+  final VoidCallback onTap;
   final String uid;
 
   final bool showDivider;
@@ -38,112 +40,115 @@ class ThreadCardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        /// Header: Avatar + Name + Time + More Button
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            CircularProfileImageWidget(
-              url: thread.user.metadata.imageUrl,
-              radius: 20,
-            ),
-
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        thread.user.metadata.name,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            thread.formattedCreatedAt,
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.white,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          PopupMenuButton<String>(
-                            icon: const Icon(Icons.more_horiz),
-                            color: Colors.grey[900],
-                            onSelected: (value) {
-                              if (value == 'edit') {
-                                editThread(thread);
-                              } else if (value == 'delete') {
-                                deleteThread(thread);
-                              } else {
-                                showSnackBar(
-                                  'Coming Soon',
-                                  'Report feature coming soon',
-                                );
-                              }
-                            },
-                            itemBuilder: (context) => [
-                              if (canEditThread(thread))
-                                const PopupMenuItem(
-                                  value: 'edit',
-                                  child: Text('Edit'),
-                                ),
-                              if (canDeleteThread(thread))
-                                const PopupMenuItem(
-                                  value: 'delete',
-                                  child: Text(
-                                    'Delete',
-                                    style: TextStyle(color: Colors.red),
-                                  ),
-                                ),
-                              const PopupMenuItem(
-                                value: 'report',
-                                child: Text('Report'),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-
-                  /// Content
-                  Text(thread.content, style: const TextStyle(fontSize: 14)),
-
-                  SizedBox(height: 4),
-
-                  /// Thread image (if exists)
-                  if (thread.image != null) ...[
-                    ThreadCardImageWidget(imageUrl: thread.image),
-                  ],
-
-                  /// Optional: Likes / Comments / Replies placeholder
-                  ThreadCardBottomWidget(
-                    thread: thread,
-                    onLikeTapped: onLikeTapped,
-                    onCommentTapped: onCommentTapped,
-                    onShareTapped: onShareTapped,
-                    uid: uid,
-                  ),
-                ],
+    return InkWell(
+      onTap: onTap,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          /// Header: Avatar + Name + Time + More Button
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CircularProfileImageWidget(
+                url: thread.user.metadata.imageUrl,
+                radius: 20,
               ),
-            ),
-          ],
-        ),
-        showDivider ? Divider(color: Color(0xFF242424)) : SizedBox.shrink(),
-        ?child,
-      ],
+
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          thread.user.metadata.name,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              thread.formattedCreatedAt,
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.white,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            PopupMenuButton<String>(
+                              icon: const Icon(Icons.more_horiz),
+                              color: Colors.grey[900],
+                              onSelected: (value) {
+                                if (value == 'edit') {
+                                  editThread(thread);
+                                } else if (value == 'delete') {
+                                  deleteThread(thread);
+                                } else {
+                                  showSnackBar(
+                                    'Coming Soon',
+                                    'Report feature coming soon',
+                                  );
+                                }
+                              },
+                              itemBuilder: (context) => [
+                                if (canEditThread(thread))
+                                  const PopupMenuItem(
+                                    value: 'edit',
+                                    child: Text('Edit'),
+                                  ),
+                                if (canDeleteThread(thread))
+                                  const PopupMenuItem(
+                                    value: 'delete',
+                                    child: Text(
+                                      'Delete',
+                                      style: TextStyle(color: Colors.red),
+                                    ),
+                                  ),
+                                const PopupMenuItem(
+                                  value: 'report',
+                                  child: Text('Report'),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+
+                    /// Content
+                    Text(thread.content, style: const TextStyle(fontSize: 14)),
+
+                    SizedBox(height: 4),
+
+                    /// Thread image (if exists)
+                    if (thread.image != null) ...[
+                      ThreadCardImageWidget(imageUrl: thread.image),
+                    ],
+
+                    /// Optional: Likes / Comments / Replies placeholder
+                    ThreadCardBottomWidget(
+                      thread: thread,
+                      onLikeTapped: onLikeTapped,
+                      onCommentTapped: onCommentTapped,
+                      onShareTapped: onShareTapped,
+                      uid: uid,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          showDivider ? Divider(color: Color(0xFF242424)) : SizedBox.shrink(),
+          ?child,
+        ],
+      ),
     );
   }
 }
