@@ -22,7 +22,7 @@ class AuthController extends GetxController {
     );
     registerLoading.value = false;
 
-    if (response.user != null) {
+    if (response.user != null && response.session != null) {
       StorageService.setUserSession(response.session!.toJson());
       Get.offAllNamed(RouteNames.home);
     } else {
