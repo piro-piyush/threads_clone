@@ -5,5 +5,5 @@ class RouteNames {
   static final String editProfile = "/edit-profile";
   static final String settings = "/settings";
   static final String changePassword = "/change-password";
-
+  static final String addComment = "/add-comment";
 }
