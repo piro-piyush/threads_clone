@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:thread_clone/controllers/create_thread_controller.dart';
 import 'package:thread_clone/services/navigation_service.dart';
-import 'package:thread_clone/views/create_thread/widgets/input_section_widget.dart';
+import 'package:thread_clone/views/thread/widgets/input_section_widget.dart';
 import 'package:thread_clone/widgets/status_loader_widget.dart';
 
 class CreateThreadView extends StatelessWidget {

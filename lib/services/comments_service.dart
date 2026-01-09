@@ -16,7 +16,6 @@ class CommentsService extends GetxService with SupabaseMixin {
       'thread_id': threadId,
       'replied_by': uid,
       'content': content,
-      'is_deleted': false,
       'is_edited': false,
     });
 
@@ -27,34 +26,42 @@ class CommentsService extends GetxService with SupabaseMixin {
   }
 
   // ---------------- FETCH THREAD COMMENTS ----------------
-  Future<List<Map<String, dynamic>>> fetchComments(String threadId) async {
+  Future<List<ReplyModel>> fetchComments(String threadId) async {
     final res = await supabase
         .from(table)
         .select('''
-          id,
+          id ,
+          content ,
+          created_at ,
+          updated_at,
+          user:replied_by (email , metadata),
+          thread:thread_id (
+           id,
           content,
+          image,
+          posted_by,
           created_at,
-          user:replied_by (
-            email,
-            metadata
-          )
+          updated_at,
+          likes,
+          comments,
+          allow_replies,
+          user:posted_by (email, metadata)
+            )
         ''')
         .eq('thread_id', threadId)
-        .eq('is_deleted', false)
         .order('created_at', ascending: true);
 
-    return List<Map<String, dynamic>>.from(res);
+    return res.map((e) => ReplyModel.fromJson(e)).toList();
   }
 
   // ---------------- DELETE COMMENT (SOFT) ----------------
   Future<void> deleteComment(String commentId) async {
     if (!isLoggedIn) throw Exception("User not logged in");
 
-    await updateRow(
-      table,
-      whereColumn: 'id',
-      whereValue: commentId,
-      data: {'is_deleted': true},
+    await deleteRow(table, whereColumn: 'id', whereValue: commentId);
+    await supabase.rpc(
+      'comment_decrement',
+      params: {'count': 1, 'row_id': commentId},
     );
   }
 
@@ -83,7 +90,7 @@ class CommentsService extends GetxService with SupabaseMixin {
           id ,
           content ,
           created_at ,
-          
+          updated_at,
           user:replied_by (email , metadata),
           thread:thread_id (
            id,
@@ -99,7 +106,6 @@ class CommentsService extends GetxService with SupabaseMixin {
             )
 ''')
         .eq("replied_by", uid!)
-        .eq("is_deleted", false)
         .order("id", ascending: false);
     print(data.toString());
     return data.map((e) => ReplyModel.fromJson(e)).toList();
