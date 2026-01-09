@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:thread_clone/models/thread_model.dart';
+import 'package:thread_clone/utils/helper.dart';
 import 'package:thread_clone/widgets/thread_card_bottom_widget.dart';
 import 'package:thread_clone/widgets/thread_card_image_widget.dart';
 
@@ -13,6 +14,12 @@ class ThreadCardWidget extends StatelessWidget {
     required this.onCommentTapped,
     required this.onShareTapped,
     required this.uid,
+    this.showDivider = true,
+    this.child,
+    required this.canEditThread,
+    required this.canDeleteThread,
+    required this.editThread,
+    required this.deleteThread,
   });
 
   final ThreadModel thread;
@@ -20,7 +27,14 @@ class ThreadCardWidget extends StatelessWidget {
   final Function(ThreadModel thread) onLikeTapped;
   final Function(ThreadModel thread) onCommentTapped;
   final Function(ThreadModel thread) onShareTapped;
+  final bool Function(ThreadModel thread) canEditThread;
+  final bool Function(ThreadModel thread) canDeleteThread;
+  final Function(ThreadModel thread) editThread;
+  final Function(ThreadModel thread) deleteThread;
   final String uid;
+
+  final bool showDivider;
+  final Widget? child;
 
   @override
   Widget build(BuildContext context) {
@@ -64,17 +78,40 @@ class ThreadCardWidget extends StatelessWidget {
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                          Padding(
-                            padding: const EdgeInsets.only(
-                              left: 8,
-                              right: 8,
-                              top: 0,
-                              bottom: 4,
-                            ),
-                            child: InkWell(
-                              onTap: () {},
-                              child: const Icon(Icons.more_horiz),
-                            ),
+                          PopupMenuButton<String>(
+                            icon: const Icon(Icons.more_horiz),
+                            color: Colors.grey[900],
+                            onSelected: (value) {
+                              if (value == 'edit') {
+                                editThread(thread);
+                              } else if (value == 'delete') {
+                                deleteThread(thread);
+                              } else {
+                                showSnackBar(
+                                  'Coming Soon',
+                                  'Report feature coming soon',
+                                );
+                              }
+                            },
+                            itemBuilder: (context) => [
+                              if (canEditThread(thread))
+                                const PopupMenuItem(
+                                  value: 'edit',
+                                  child: Text('Edit'),
+                                ),
+                              if (canDeleteThread(thread))
+                                const PopupMenuItem(
+                                  value: 'delete',
+                                  child: Text(
+                                    'Delete',
+                                    style: TextStyle(color: Colors.red),
+                                  ),
+                                ),
+                              const PopupMenuItem(
+                                value: 'report',
+                                child: Text('Report'),
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -84,28 +121,28 @@ class ThreadCardWidget extends StatelessWidget {
                   /// Content
                   Text(thread.content, style: const TextStyle(fontSize: 14)),
 
+                  SizedBox(height: 4),
+
                   /// Thread image (if exists)
                   if (thread.image != null) ...[
-                    const SizedBox(height: 10),
-                    ThreadCardImageWidget(thread: thread),
-
-                    const SizedBox(height: 12),
-
-                    /// Optional: Likes / Comments / Replies placeholder
-                    ThreadCardBottomWidget(
-                      thread: thread,
-                      onLikeTapped: onLikeTapped,
-                      onCommentTapped: onCommentTapped,
-                      onShareTapped: onShareTapped,
-                      uid: uid,
-                    ),
+                    ThreadCardImageWidget(imageUrl: thread.image),
                   ],
+
+                  /// Optional: Likes / Comments / Replies placeholder
+                  ThreadCardBottomWidget(
+                    thread: thread,
+                    onLikeTapped: onLikeTapped,
+                    onCommentTapped: onCommentTapped,
+                    onShareTapped: onShareTapped,
+                    uid: uid,
+                  ),
                 ],
               ),
             ),
           ],
         ),
-        Divider(color: Color(0xFF242424)),
+        showDivider ? Divider(color: Color(0xFF242424)) : SizedBox.shrink(),
+        ?child,
       ],
     );
   }

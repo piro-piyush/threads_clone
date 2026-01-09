@@ -8,7 +8,7 @@ class ThreadModel {
   final DateTime createdAt;
   final DateTime? updatedAt;
   final List<String> likes;
-  final List<String> comments;
+  final int comments;
   final bool allowReplies;
   final UserModel user;
 
@@ -20,7 +20,7 @@ class ThreadModel {
     required this.createdAt,
     this.updatedAt,
     this.likes = const [],
-    this.comments = const [],
+    this.comments = 0,
     this.allowReplies = true,
     required this.user,
   });
@@ -35,7 +35,7 @@ class ThreadModel {
         ? DateTime.parse(json['updated_at'] as String)
         : null,
     likes: List<String>.from(json['likes'] ?? []),
-    comments: List<String>.from(json['comments'] ?? []),
+    comments:json['comments'] as int,
     allowReplies: json['allow_replies'] ?? true,
     user: UserModel.fromJson(json['user'] as Map<String, dynamic>),
   );
@@ -75,9 +75,34 @@ class ThreadModel {
 
   int get likesCount => likes.length;
 
-  int get commentsCount => comments.length;
-
   bool isLiked(String uid) => likes.contains(uid);
 
   bool get isEdited => updatedAt != null;
+
+  /// ------------------ COPY WITH ------------------
+  ThreadModel copyWith({
+    int? id,
+    String? content,
+    String? image,
+    String? postedBy,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    List<String>? likes,
+    int? comments,
+    bool? allowReplies,
+    UserModel? user,
+  }) {
+    return ThreadModel(
+      id: id ?? this.id,
+      content: content ?? this.content,
+      image: image ?? this.image,
+      postedBy: postedBy ?? this.postedBy,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      likes: likes ?? List<String>.from(this.likes),
+      comments: comments ?? this.comments,
+      allowReplies: allowReplies ?? this.allowReplies,
+      user: user ?? this.user,
+    );
+  }
 }
