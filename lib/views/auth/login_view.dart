@@ -14,7 +14,7 @@ class LoginView extends StatefulWidget {
 }
 
 class _LoginViewState extends State<LoginView> {
-  final AuthController controller = Get.put(AuthController());
+  final AuthController controller = Get.find<AuthController>();
    bool hidePassword = true;
 
   /// 🔑 Login-only FormKey
@@ -40,7 +40,7 @@ class _LoginViewState extends State<LoginView> {
   void login() {
     if (formKey.currentState!.validate()) {
       if (!controller.loginLoading.value) {
-        controller.login(emailController.text, passwordController.text,context);
+        controller.login(emailController.text, passwordController.text);
       }
     }
   }
