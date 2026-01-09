@@ -6,4 +6,6 @@ class RouteNames {
   static final String settings = "/settings";
   static final String changePassword = "/change-password";
   static final String addComment = "/add-comment";
+  static final String thread = "/thread";
+  static final String fullScreenImage = "/full-screen-image";
 }

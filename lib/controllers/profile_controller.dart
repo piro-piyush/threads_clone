@@ -206,6 +206,7 @@ class ProfileController extends GetxController {
     try {
     // 🔥 Call delete API here
     await commentsService.deleteComment(reply.id.toString());
+
     repliedThreads.removeWhere((t) => t.id == reply.id);
 
 
