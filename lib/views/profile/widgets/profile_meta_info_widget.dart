@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:thread_clone/widgets/circular_image_widget.dart';
 
 class ProfileMetaInfoWidget extends StatelessWidget {
-  const ProfileMetaInfoWidget({super.key, required this.name, required this.description, this.imageUrl});
+  const ProfileMetaInfoWidget({
+    super.key,
+    required this.name,
+    required this.description,
+    this.imageUrl,
+  });
 
   final String name;
   final String description;
@@ -22,14 +28,21 @@ class ProfileMetaInfoWidget extends StatelessWidget {
               // Name
               Text(
                 name,
-                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
               // Description
               Text(
                 description,
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.grey),
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.grey,
+                ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -38,7 +51,7 @@ class ProfileMetaInfoWidget extends StatelessWidget {
         ),
 
         /// Right: Profile Image
-        CircleAvatar(radius: 40, backgroundImage: imageUrl != null && imageUrl!.isNotEmpty ? NetworkImage(imageUrl!) : const AssetImage('assets/images/avatar.png') as ImageProvider),
+        CircularProfileImageWidget(url: imageUrl, radius: 40),
       ],
     );
   }
