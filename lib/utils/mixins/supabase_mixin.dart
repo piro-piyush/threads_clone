@@ -79,4 +79,21 @@ mixin SupabaseMixin {
   Future<void> deleteFile(String bucket, String path) async {
     await supabase.storage.from(bucket).remove([path]);
   }
+
+  Future<Map<String, dynamic>?> getRow(
+      String table, {
+        required String whereColumn,
+        required dynamic whereValue,
+        String? select,
+      }) async {
+    final data = await supabase
+        .from(table)
+        .select(select ?? '*')
+        .eq(whereColumn, whereValue)
+        .maybeSingle();
+
+    if (data == null) return null;
+
+    return Map<String, dynamic>.from(data);
+  }
 }

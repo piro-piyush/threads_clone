@@ -1,19 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:get/get_utils/src/extensions/context_extensions.dart';
-import 'package:thread_clone/models/thread_model.dart';
 import 'package:extended_image/extended_image.dart';
 import 'package:shimmer/shimmer.dart';
 
 class ThreadCardImageWidget extends StatelessWidget {
-  const ThreadCardImageWidget({super.key, required this.thread});
+  const ThreadCardImageWidget({super.key, this.imageUrl});
 
-  final ThreadModel thread;
+  final String? imageUrl;
 
   @override
   Widget build(BuildContext context) {
-    final imageUrl = thread.image;
-
-    if (imageUrl == null || imageUrl.isEmpty) {
+    if (imageUrl == null || imageUrl!.isEmpty) {
       return const SizedBox(); // No image
     }
 
@@ -25,7 +22,7 @@ class ThreadCardImageWidget extends StatelessWidget {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(20),
         child: ExtendedImage.network(
-          imageUrl,
+          imageUrl!,
           fit: BoxFit.cover,
           cache: true, // ✅ caching enabled
           borderRadius: BorderRadius.circular(20),

@@ -25,26 +25,26 @@ class ThreadCardBottomWidget extends StatelessWidget {
         Row(
           children: [
             IconButton(
-              onPressed: onLikeTapped(thread),
+              onPressed: () => onLikeTapped(thread),
               icon: Icon(
                 thread.isLiked(uid) ? Icons.favorite : Icons.favorite_outline,
                 color: thread.isLiked(uid) ? Colors.red : Colors.white,
               ),
             ),
             IconButton(
-              onPressed: onCommentTapped(thread),
-              icon: Icon(Icons.chat_bubble_outline, color: Colors.white),
+              onPressed: () => onCommentTapped(thread),
+              icon: const Icon(Icons.chat_bubble_outline, color: Colors.white),
             ),
             IconButton(
-              onPressed: onShareTapped(thread),
-              icon: Icon(Icons.send_outlined, color: Colors.white),
+              onPressed: () => onShareTapped(thread),
+              icon: const Icon(Icons.send, color: Colors.white),
             ),
           ],
         ),
         Row(
+          spacing: 10,
           children: [
-            Text("${thread.commentsCount} replies"),
-            const SizedBox(width: 10),
+            Text("${thread.comments} replies"),
             Text("${thread.likesCount} likes"),
           ],
         ),
