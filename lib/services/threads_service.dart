@@ -1,7 +1,7 @@
+import 'dart:io';
 import 'package:get/get.dart';
 import 'package:thread_clone/models/thread_model.dart';
 import 'package:thread_clone/utils/mixins/supabase_mixin.dart';
-import 'dart:io';
 
 class ThreadsService extends GetxService with SupabaseMixin {
   static const String table = 'threads';
@@ -19,6 +19,7 @@ class ThreadsService extends GetxService with SupabaseMixin {
       'content': content,
       'image': image,
       'allow_replies': allowReplies,
+      'likes': [],
       'is_deleted': false,
       'is_archived': false,
       'is_edited': false,
@@ -31,45 +32,59 @@ class ThreadsService extends GetxService with SupabaseMixin {
       final res = await supabase
           .from(table)
           .select('''
-          id,
-          content,
-          image,
-          posted_by,
-          created_at,
-          updated_at,
-          likes,
-          comments,
-          allow_replies,
-          user:posted_by (email, metadata)
-        ''')
-          .order('id', ascending: false);
+        id,
+        content,
+        image,
+        posted_by,
+        created_at,
+        updated_at,
+        likes,
+        comments,
+        allow_replies,
+        user:posted_by (email, metadata)
+      ''')
+          .eq('is_deleted', false)
+          .order('created_at', ascending: false);
 
-      final data = res as List<dynamic>?;
-      if (data == null) return [];
-      // Map to ThreadModel
-      final threads = data
-          .map((d) => ThreadModel.fromJson(Map<String, dynamic>.from(d)))
+      return (res as List)
+          .map((e) => ThreadModel.fromJson(Map<String, dynamic>.from(e)))
           .toList();
-
-      return threads;
     } catch (e) {
+      Get.log('FetchThreads Error: $e');
       return [];
     }
   }
 
-  // ---------------- FETCH USER THREADS ----------------
-  Future<List<Map<String, dynamic>>> fetchUserThreads(String userId) async {
-    return fetchList(
+  // ---------------- FETCH SINGLE THREAD ----------------
+  Future<ThreadModel> fetchThread(String id) async {
+    final data = await getRow(
       table,
-      orderBy: 'created_at',
-      ascending: false,
-      filters: {'posted_by': userId, 'is_deleted': false},
+      whereColumn: 'id',
+      whereValue: id,
+      select: '''
+        id,
+        content,
+        image,
+        posted_by,
+        created_at,
+        updated_at,
+        likes,
+        comments,
+        allow_replies,
+        user:posted_by (email, metadata)
+      ''',
     );
+
+    if (data == null) {
+      throw Exception('Thread not found');
+    }
+
+    return ThreadModel.fromJson(data);
   }
 
   // ---------------- UPDATE THREAD ----------------
   Future<void> updateThread({
-    required int threadId,
+    required String threadId,
     required String content,
   }) async {
     await updateRow(
@@ -85,7 +100,7 @@ class ThreadsService extends GetxService with SupabaseMixin {
   }
 
   // ---------------- ARCHIVE THREAD ----------------
-  Future<void> archiveThread(int threadId) async {
+  Future<void> archiveThread(String threadId) async {
     await updateRow(
       table,
       whereColumn: 'id',
@@ -94,8 +109,8 @@ class ThreadsService extends GetxService with SupabaseMixin {
     );
   }
 
-  // ---------------- DELETE THREAD (SOFT DELETE) ----------------
-  Future<void> deleteThread(int threadId) async {
+  // ---------------- DELETE THREAD (SOFT) ----------------
+  Future<void> deleteThread(String threadId) async {
     await updateRow(
       table,
       whereColumn: 'id',
@@ -112,5 +127,102 @@ class ThreadsService extends GetxService with SupabaseMixin {
     if (!isLoggedIn) throw Exception("User not logged in");
 
     return uploadImage(file: file, bucket: bucket, folder: 'threads/$uid');
+  }
+
+  // ---------------- LIKE THREAD ----------------
+  Future<void> like(String threadId) async {
+    if (!isLoggedIn) return;
+
+    try {
+      // Fetch current likes
+      final res = await supabase
+          .from('threads')
+          .select('likes')
+          .eq('id', threadId)
+          .maybeSingle(); // safer than .single(), returns null if not found
+
+      if (res == null) {
+        Get.snackbar('Error', 'Thread not found');
+        return;
+      }
+
+      // Ensure likes is a List<String>
+      final List<dynamic> currentLikes = res['likes'] ?? [];
+      final List<String> likes = currentLikes.map((e) => e.toString()).toList();
+
+      if (likes.contains(uid)) return; // already liked
+
+      likes.add(uid!);
+
+      // Update thread likes
+      await supabase
+          .from('threads')
+          .update({'likes': likes})
+          .eq('id', threadId);
+    } catch (e, st) {
+      Get.log('Like Error: $e\n$st');
+      Get.snackbar('Error', 'Failed to like thread');
+    }
+  }
+
+  // ---------------- UNLIKE THREAD ----------------
+  Future<void> unlike(String threadId) async {
+    if (!isLoggedIn) return;
+
+    try {
+      final res = await supabase
+          .from('threads')
+          .select('likes')
+          .eq('id', threadId)
+          .single();
+
+      final List likes = res['likes'] ?? [];
+
+      if (!likes.contains(uid)) return;
+
+      likes.remove(uid);
+
+      await supabase
+          .from('threads')
+          .update({'likes': likes})
+          .eq('id', threadId);
+    } catch (e) {
+      Get.log('Unlike Error: $e');
+      Get.snackbar('Error', 'Failed to unlike thread');
+    }
+  }
+
+
+
+  // ---------------- FETCH CURRENT USER THREADS ----------------
+  Future<List<ThreadModel>> fetchMyThreads() async {
+    if (!isLoggedIn) return [];
+
+    try {
+      final res = await supabase
+          .from(table)
+          .select('''
+          id,
+          content,
+          image,
+          posted_by,
+          created_at,
+          updated_at,
+          likes,
+          comments,
+          allow_replies,
+          user:posted_by (email, metadata)
+        ''')
+          .eq('posted_by', uid!)
+          .eq('is_deleted', false)
+          .order('created_at', ascending: false);
+
+      return (res as List)
+          .map((e) => ThreadModel.fromJson(Map<String, dynamic>.from(e)))
+          .toList();
+    } catch (e) {
+      Get.log('FetchMyThreads Error: $e');
+      return [];
+    }
   }
 }
