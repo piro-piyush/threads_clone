@@ -104,6 +104,9 @@ class ThreadReplyWidget extends StatelessWidget {
           // -------- ORIGINAL THREAD PREVIEW --------
           ThreadCardWidget(
             thread: reply.thread,
+            onTap: () {
+              Get.toNamed(RouteNames.thread, arguments: reply.thread.id);
+            },
             onLikeTapped: controller.onLikeTapped,
             onCommentTapped: (thread) {
               Get.toNamed(RouteNames.addComment, arguments: thread.id);
@@ -113,7 +116,7 @@ class ThreadReplyWidget extends StatelessWidget {
             canEditThread: controller.canEditThread,
             canDeleteThread: controller.canDeleteThread,
             editThread: controller.editThread,
-            deleteThread:(thread)=> controller.deleteThread(context,thread),
+            deleteThread: (thread) => controller.deleteThread(context, thread),
           ),
         ],
       ),
