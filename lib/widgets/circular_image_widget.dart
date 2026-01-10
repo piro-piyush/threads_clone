@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:extended_image/extended_image.dart';
-import 'package:get/get.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:thread_clone/routes/route_names.dart';
 
 class CircularProfileImageWidget extends StatelessWidget {
   const CircularProfileImageWidget({

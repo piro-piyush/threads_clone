@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:thread_clone/controllers/profile_controller.dart';
 import 'package:thread_clone/models/reply_model.dart';
 import 'package:thread_clone/models/thread_model.dart';
 import 'package:thread_clone/routes/route_names.dart';
