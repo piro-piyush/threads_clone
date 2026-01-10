@@ -1,9 +1,11 @@
 import 'package:get/get.dart';
 import 'package:thread_clone/models/reply_model.dart';
 import 'package:thread_clone/utils/mixins/supabase_mixin.dart';
+import 'package:thread_clone/utils/query_generator.dart';
 
 class CommentsService extends GetxService with SupabaseMixin {
   static const String table = 'comments';
+  static CommentsService get instance => Get.find<CommentsService>();
 
   // ---------------- ADD COMMENT ----------------
   Future<void> addComment({
@@ -29,25 +31,7 @@ class CommentsService extends GetxService with SupabaseMixin {
   Future<List<ReplyModel>> fetchComments(String threadId) async {
     final res = await supabase
         .from(table)
-        .select('''
-          id ,
-          content ,
-          created_at ,
-          updated_at,
-          user:replied_by (email , metadata),
-          thread:thread_id (
-           id,
-          content,
-          image,
-          posted_by,
-          created_at,
-          updated_at,
-          likes,
-          comments,
-          allow_replies,
-          user:posted_by (email, metadata)
-            )
-        ''')
+        .select(QueryGenerator.replyWithThreadAndLikes)
         .eq('thread_id', threadId)
         .order('created_at', ascending: true);
 
@@ -55,13 +39,13 @@ class CommentsService extends GetxService with SupabaseMixin {
   }
 
   // ---------------- DELETE COMMENT (SOFT) ----------------
-  Future<void> deleteComment(String commentId) async {
+  Future<void> deleteComment(String commentId, String threadId) async {
     if (!isLoggedIn) throw Exception("User not logged in");
 
     await deleteRow(table, whereColumn: 'id', whereValue: commentId);
     await supabase.rpc(
       'comment_decrement',
-      params: {'count': 1, 'row_id': commentId},
+      params: {'count': 1, 'row_id': threadId},
     );
   }
 
@@ -83,31 +67,12 @@ class CommentsService extends GetxService with SupabaseMixin {
     );
   }
 
-  Future<List<ReplyModel>> fetchReplies() async {
+  Future<List<ReplyModel>> fetchReplies(String id) async {
     final List<dynamic> data = await supabase
         .from(table)
-        .select('''
-          id ,
-          content ,
-          created_at ,
-          updated_at,
-          user:replied_by (email , metadata),
-          thread:thread_id (
-           id,
-          content,
-          image,
-          posted_by,
-          created_at,
-          updated_at,
-          likes,
-          comments,
-          allow_replies,
-          user:posted_by (email, metadata)
-            )
-''')
-        .eq("replied_by", uid!)
+        .select(QueryGenerator.replyWithThreadAndLikes)
+        .eq("replied_by", id)
         .order("id", ascending: false);
-    print(data.toString());
     return data.map((e) => ReplyModel.fromJson(e)).toList();
   }
 }

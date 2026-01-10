@@ -3,12 +3,15 @@ import 'package:get/get.dart';
 import 'package:thread_clone/models/thread_model.dart';
 import 'package:thread_clone/services/comments_service.dart';
 import 'package:thread_clone/services/notifications_service.dart';
+import 'package:thread_clone/services/thread_like_service.dart';
 import 'package:thread_clone/services/threads_service.dart';
 import 'package:thread_clone/utils/enums.dart';
 import 'package:thread_clone/utils/helper.dart';
 
 class CommentController extends GetxController {
   final ThreadsService _threadsService = Get.find<ThreadsService>();
+  final ThreadLikeService _threadLikeService = Get.find<ThreadLikeService>();
+
   final CommentsService _commentsService = Get.find<CommentsService>();
   final NotificationsService _notificationsService =
       Get.find<NotificationsService>();
@@ -23,6 +26,10 @@ class CommentController extends GetxController {
   late final TextEditingController commentController;
 
   String get uid => _threadsService.uid ?? '';
+
+  RxMap<int, bool> get likesMap => _threadLikeService.likesMap;
+
+
 
   @override
   void onInit() {
@@ -61,6 +68,9 @@ class CommentController extends GetxController {
       error.value = '';
 
       thread.value = await _threadsService.fetchThread(threadId);
+      likesMap[thread.value!.id] = await _threadLikeService.isThreadLiked(
+        threadId,
+      );
     } catch (e) {
       error.value = 'Failed to load thread';
       Get.log('FetchThread Error: $e');
@@ -79,28 +89,36 @@ class CommentController extends GetxController {
     final currentThread = thread.value;
     if (currentThread == null) return;
 
-    final alreadyLiked = currentThread.isLiked(uid);
+    final wasLiked = await _threadLikeService.isThreadLiked(threadId);
 
-    // 🔁 Local optimistic update
-    final updatedThread = currentThread.copyWith(
-      likes: alreadyLiked
-          ? currentThread.likes.where((id) => id != uid).toList()
-          : [...currentThread.likes, uid],
+    // 🚀 Optimistic update
+    thread.value = currentThread.copyWith(
+      likesCount: wasLiked
+          ? currentThread.likesCount - 1
+          : currentThread.likesCount + 1,
     );
-
-    thread.value = updatedThread;
-
+    likesMap[thread.value!.id] = !wasLiked;
     try {
-      // 🔥 Server update
-      if (alreadyLiked) {
-        await _threadsService.unlike(threadId);
+      if (wasLiked) {
+        await _threadLikeService.unlikeThread(threadId);
       } else {
-        await _threadsService.like(threadId);
+        await _threadLikeService.likeThread(threadId);
+        await _notificationsService.sendNotification(
+          toUserId: currentThread.user.id,
+          threadId: threadId,
+          content: NotificationType.like.description,
+          type: NotificationType.like.value,
+
+        );
       }
     } catch (e) {
-      // ❌ rollback if API fails
+      // ❌ rollback
       thread.value = currentThread;
-      Get.snackbar('Error', 'Failed to like thread');
+      likesMap[thread.value!.id] = wasLiked;
+      Get.rawSnackbar(
+        message: 'Failed to update like',
+        duration: const Duration(seconds: 2),
+      );
     }
   }
 
@@ -131,7 +149,7 @@ class CommentController extends GetxController {
 
       await _commentsService.addComment(threadId: threadId, content: content);
       await _notificationsService.sendNotification(
-        toUserId: thread.value!.postedBy,
+        toUserId: thread.value!.user.id,
         threadId: threadId,
         content: NotificationType.reply.description,
         type: NotificationType.reply.value,
