@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_utils/src/extensions/context_extensions.dart';
 import 'package:extended_image/extended_image.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:thread_clone/routes/route_names.dart';
