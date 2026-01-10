@@ -58,6 +58,7 @@ class AddCommentView extends GetView<CommentController> {
                       CircularProfileImageWidget(
                         url: thread.user.metadata.imageUrl,
                         radius: 20,
+                        uid:thread.user.id,
                       ),
 
                       const SizedBox(width: 10),
@@ -105,17 +106,20 @@ class AddCommentView extends GetView<CommentController> {
                               /// Optional: Likes / Comments / Replies placeholder
                               Row(
                                 children: [
-                                  IconButton(
-                                    onPressed: () => controller.onLikeTapped(),
-                                    icon: Icon(
-                                      thread.isLiked(controller.uid)
-                                          ? Icons.favorite
-                                          : Icons.favorite_outline,
-                                      color: thread.isLiked(controller.uid)
-                                          ? Colors.red
-                                          : Colors.white,
-                                    ),
-                                  ),
+                                  Obx(() {
+                                    // ✅ Safe null check, default false
+                                    final isLiked = controller.likesMap[thread.id] ?? false;
+
+                                    return IconButton(
+                                      onPressed: () => controller.onLikeTapped(),
+                                      icon: Icon(
+                                        isLiked ? Icons.favorite : Icons.favorite_outline,
+                                        color: isLiked ? Colors.red : Colors.white,
+                                      ),
+                                      tooltip: isLiked ? 'Unlike' : 'Like', // optional: UX improvement
+                                    );
+                                  }),
+
                                   IconButton(
                                     onPressed:  controller.onShareTapped,
                                     icon: const Icon(

@@ -11,6 +11,11 @@ enum NotificationType {
   system,
 }
 
+enum ThreadEventType {
+  insert,
+  update,
+  delete,
+}
 extension NotificationTypeExtension on NotificationType {
   // Friendly title
   String get title {
