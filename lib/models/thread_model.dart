@@ -4,11 +4,11 @@ class ThreadModel {
   final int id;
   final String content;
   final String? image;
-  final String postedBy;
+  // final String postedBy;
   final DateTime createdAt;
   final DateTime? updatedAt;
-  final List<String> likes;
-  final int comments;
+  final int likesCount;
+  final int commentsCount;
   final bool allowReplies;
   final UserModel user;
 
@@ -16,11 +16,11 @@ class ThreadModel {
     required this.id,
     required this.content,
     this.image,
-    required this.postedBy,
+    // required this.postedBy,
     required this.createdAt,
     this.updatedAt,
-    this.likes = const [],
-    this.comments = 0,
+    this.likesCount = 0,
+    this.commentsCount = 0,
     this.allowReplies = true,
     required this.user,
   });
@@ -29,13 +29,13 @@ class ThreadModel {
     id: json['id'] as int,
     content: json['content'] as String,
     image: json['image'] as String?,
-    postedBy: json['posted_by'] as String,
+    // postedBy: json['posted_by'] as String,
     createdAt: DateTime.parse(json['created_at'] as String),
     updatedAt: json['updated_at'] != null
         ? DateTime.parse(json['updated_at'] as String)
         : null,
-    likes: List<String>.from(json['likes'] ?? []),
-    comments:json['comments'] as int,
+    likesCount: json['likes_count'] as int,
+    commentsCount: json['comments_count'] as int,
     allowReplies: json['allow_replies'] ?? true,
     user: UserModel.fromJson(json['user'] as Map<String, dynamic>),
   );
@@ -44,11 +44,11 @@ class ThreadModel {
     'id': id,
     'content': content,
     'image': image,
-    'posted_by': postedBy,
+    // 'posted_by': postedBy,
     'created_at': createdAt.toIso8601String(),
     'updated_at': updatedAt?.toIso8601String(),
-    'likes': likes,
-    'comments': comments,
+    'likes_count': likesCount,
+    'comments_count': commentsCount,
     'allow_replies': allowReplies,
     'user': user.toJson(),
   };
@@ -73,9 +73,9 @@ class ThreadModel {
     }
   }
 
-  int get likesCount => likes.length;
-
-  bool isLiked(String uid) => likes.contains(uid);
+  // bool isLiked(String uid) {
+  //   return true;
+  // }
 
   bool get isEdited => updatedAt != null;
 
@@ -84,11 +84,11 @@ class ThreadModel {
     int? id,
     String? content,
     String? image,
-    String? postedBy,
+    // String? postedBy,
     DateTime? createdAt,
     DateTime? updatedAt,
-    List<String>? likes,
-    int? comments,
+    int? likesCount,
+    int? commentsCount,
     bool? allowReplies,
     UserModel? user,
   }) {
@@ -96,11 +96,11 @@ class ThreadModel {
       id: id ?? this.id,
       content: content ?? this.content,
       image: image ?? this.image,
-      postedBy: postedBy ?? this.postedBy,
+      // postedBy: postedBy ?? this.postedBy,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
-      likes: likes ?? List<String>.from(this.likes),
-      comments: comments ?? this.comments,
+      likesCount: likesCount ?? this.likesCount,
+      commentsCount: commentsCount ?? this.commentsCount,
       allowReplies: allowReplies ?? this.allowReplies,
       user: user ?? this.user,
     );

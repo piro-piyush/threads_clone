@@ -117,6 +117,8 @@ class ThreadReplyWidget extends StatelessWidget {
             canDeleteThread: controller.canDeleteThread,
             editThread: controller.editThread,
             deleteThread: (thread) => controller.deleteThread(context, thread),
+            isLiked: controller.threadLikeService.isThreadLiked,
+            likesMap: controller.likesMap,
           ),
         ],
       ),
