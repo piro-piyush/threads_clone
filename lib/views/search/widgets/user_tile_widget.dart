@@ -16,7 +16,7 @@ class UserTileWidget extends StatelessWidget {
         padding: const EdgeInsets.only(top: 5),
         child: CircularProfileImageWidget(
           url: user.metadata?.imageUrl,radius: 28,
-          uid:user.id,
+          onTap: (){},
         ),
       ),
       title: Text(user.metadata!.name),

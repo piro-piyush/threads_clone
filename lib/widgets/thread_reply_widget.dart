@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:thread_clone/controllers/profile_controller.dart';
 import 'package:thread_clone/models/reply_model.dart';
+import 'package:thread_clone/models/thread_model.dart';
 import 'package:thread_clone/routes/route_names.dart';
 import 'package:thread_clone/utils/helper.dart';
 import 'package:thread_clone/widgets/thread_card_widget.dart';
@@ -11,11 +12,44 @@ import 'circular_image_widget.dart';
 class ThreadReplyWidget extends StatelessWidget {
   final ReplyModel reply;
 
-  const ThreadReplyWidget({super.key, required this.reply});
+  const ThreadReplyWidget({
+    super.key,
+    required this.reply,
+    required this.isLiked,
+    required this.onLikeTapped,
+    required this.onCommentTapped,
+    required this.onShareTapped,
+    required this.canEditThread,
+    required this.canDeleteThread,
+    required this.editReply,
+    required this.deleteReply,
+    required this.onTap,
+    required this.uid,
+    required this.likesMap,
+    required this.showDivider,
+    this.child,
+    required this.editThread,
+    required this.deleteThread,
+  });
+
+  final Future<bool> Function(String threadId) isLiked;
+  final Function(ThreadModel thread) onLikeTapped;
+  final Function(ThreadModel thread) onCommentTapped;
+  final Function(ThreadModel thread) onShareTapped;
+  final bool Function(ThreadModel thread) canEditThread;
+  final bool Function(ThreadModel thread) canDeleteThread;
+  final Function(ThreadModel thread) editThread;
+  final Function(ThreadModel thread) deleteThread;
+  final Function(BuildContext context, ReplyModel reply) deleteReply;
+  final Function(BuildContext context, ReplyModel reply) editReply;
+  final VoidCallback onTap;
+  final String uid;
+  final RxMap<int, bool> likesMap;
+  final bool showDivider;
+  final Widget? child;
 
   @override
   Widget build(BuildContext context) {
-    final ProfileController controller = Get.find<ProfileController>();
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -33,6 +67,14 @@ class ThreadReplyWidget extends StatelessWidget {
               CircularProfileImageWidget(
                 url: reply.user.metadata.imageUrl,
                 radius: 20,
+                onTap: () {
+                  if (reply.user.id != uid) {
+                    Get.toNamed(
+                      RouteNames.showProfile,
+                      arguments: reply.user.id,
+                    );
+                  }
+                },
               ),
 
               Expanded(
@@ -62,9 +104,9 @@ class ThreadReplyWidget extends StatelessWidget {
                           color: Colors.grey[900],
                           onSelected: (value) {
                             if (value == 'edit') {
-                              controller.editReply(reply);
+                              editReply(context, reply);
                             } else if (value == 'delete') {
-                              controller.deleteReply(context, reply);
+                              deleteReply(context, reply);
                             } else {
                               showSnackBar(
                                 'Coming Soon',
@@ -107,18 +149,18 @@ class ThreadReplyWidget extends StatelessWidget {
             onTap: () {
               Get.toNamed(RouteNames.thread, arguments: reply.thread.id);
             },
-            onLikeTapped: controller.onLikeTapped,
+            onLikeTapped: onLikeTapped,
             onCommentTapped: (thread) {
               Get.toNamed(RouteNames.addComment, arguments: thread.id);
             },
-            onShareTapped: controller.onShareTapped,
-            uid: controller.uid,
-            canEditThread: controller.canEditThread,
-            canDeleteThread: controller.canDeleteThread,
-            editThread: controller.editThread,
-            deleteThread: (thread) => controller.deleteThread(context, thread),
-            isLiked: controller.threadLikeService.isThreadLiked,
-            likesMap: controller.likesMap,
+            onShareTapped: onShareTapped,
+            uid: uid,
+            canEditThread: canEditThread,
+            canDeleteThread: canDeleteThread,
+            editThread: editThread,
+            deleteThread: (thread) => deleteThread(thread),
+            isLiked: isLiked,
+            likesMap: likesMap,
           ),
         ],
       ),

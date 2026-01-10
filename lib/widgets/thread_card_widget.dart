@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:thread_clone/models/thread_model.dart';
+import 'package:thread_clone/routes/route_names.dart';
 import 'package:thread_clone/utils/helper.dart';
 import 'package:thread_clone/widgets/thread_card_bottom_widget.dart';
 import 'package:thread_clone/widgets/thread_card_image_widget.dart';
@@ -55,7 +56,11 @@ class ThreadCardWidget extends StatelessWidget {
               CircularProfileImageWidget(
                 url: thread.user.metadata.imageUrl,
                 radius: 20,
-                uid:thread.user.id,
+                onTap: (){
+                  if (thread.user.id != uid) {
+                    Get.toNamed(RouteNames.showProfile, arguments: thread.user.id);
+                  }
+                },
               ),
 
               const SizedBox(width: 10),

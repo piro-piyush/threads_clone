@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:thread_clone/controllers/profile_controller.dart';
+import 'package:thread_clone/routes/route_names.dart';
 
 import 'package:thread_clone/widgets/thread_reply_widget.dart';
 
@@ -51,7 +52,33 @@ class RepliesWidget extends StatelessWidget {
         separatorBuilder: (_, _) => const SizedBox(height: 12),
         itemBuilder: (context, index) {
           final reply = controller.repliedThreads[index];
-          return ThreadReplyWidget(reply: reply);
+          return ThreadReplyWidget(
+            reply: reply,
+
+            onLikeTapped: controller.onLikeTapped,
+            uid: controller.uid,
+            likesMap: controller.likesMap,
+            isLiked: controller.threadLikeService.isThreadLiked,
+            onCommentTapped: (thread) {
+              Get.toNamed(RouteNames.addComment, arguments: thread.id);
+            },
+            onShareTapped: controller.onShareTapped,
+
+            canEditThread: controller.canEditThread,
+            canDeleteThread: controller.canDeleteThread,
+
+            editThread: controller.editThread,
+            deleteThread: (thread) => controller.deleteThread(context, thread),
+            editReply: controller.editReply,
+            deleteReply: controller.deleteReply,
+            onTap: () {
+              Get.toNamed(
+                RouteNames.thread,
+                arguments: controller.repliedThreads[index].thread.id,
+              );
+            },
+            showDivider: true,
+          );
         },
       );
     });

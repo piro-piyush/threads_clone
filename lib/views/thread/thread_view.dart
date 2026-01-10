@@ -50,7 +50,11 @@ class ThreadView extends StatelessWidget {
                     CircularProfileImageWidget(
                       url: thread.user.metadata.imageUrl,
                       radius: 22,
-                      uid:thread.user.id,
+                      onTap: (){
+                        if (thread.user.id != controller.uid) {
+                          Get.toNamed(RouteNames.showProfile, arguments: thread.user.id);
+                        }
+                      },
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -216,7 +220,11 @@ class ThreadView extends StatelessWidget {
                         leading: CircularProfileImageWidget(
                           url: reply.user.metadata.imageUrl,
                           radius: 20,
-                          uid:thread.user.id,
+                          onTap: (){
+                            if (reply.user.id != controller.uid) {
+                              Get.toNamed(RouteNames.showProfile, arguments: reply.user.id);
+                            }
+                          },
                         ),
                         title: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
