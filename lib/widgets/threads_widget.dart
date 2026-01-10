@@ -91,7 +91,11 @@ class ThreadsWidget extends StatelessWidget {
               canEditThread: profileController.canEditThread,
               canDeleteThread: profileController.canDeleteThread,
               editThread: profileController.editThread,
-              deleteThread:(thread)=> profileController.deleteThread(context,thread),
+              deleteThread: (thread) =>
+                  profileController.deleteThread(context, thread),
+              isLiked: profileController.threadLikeService.isThreadLiked,
+
+              likesMap: profileController.likesMap,
             );
           },
         );

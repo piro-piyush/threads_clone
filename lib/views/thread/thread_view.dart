@@ -50,6 +50,7 @@ class ThreadView extends StatelessWidget {
                     CircularProfileImageWidget(
                       url: thread.user.metadata.imageUrl,
                       radius: 22,
+                      uid:thread.user.id,
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -138,17 +139,25 @@ class ThreadView extends StatelessWidget {
                           // Actions
                           Row(
                             children: [
-                              IconButton(
-                                onPressed: controller.onLikeTapped,
-                                icon: Icon(
-                                  thread.isLiked(controller.uid)
-                                      ? Icons.favorite
-                                      : Icons.favorite_outline,
-                                  color: thread.isLiked(controller.uid)
-                                      ? Colors.red
-                                      : Colors.white,
-                                ),
-                              ),
+                              Obx(() {
+                                // ✅ Safe null check, default false
+                                final isLiked =
+                                    controller.likesMap[thread.id] ?? false;
+
+                                return IconButton(
+                                  onPressed: () => controller.onLikeTapped(),
+                                  icon: Icon(
+                                    isLiked
+                                        ? Icons.favorite
+                                        : Icons.favorite_outline,
+                                    color: isLiked ? Colors.red : Colors.white,
+                                  ),
+                                  tooltip: isLiked
+                                      ? 'Unlike'
+                                      : 'Like',
+                                );
+                              }),
+
                               IconButton(
                                 onPressed: () {
                                   Get.toNamed(
@@ -168,7 +177,7 @@ class ThreadView extends StatelessWidget {
                           // Stats
                           Row(
                             children: [
-                              Text("${thread.comments} replies"),
+                              Text("${thread.commentsCount} replies"),
                               const SizedBox(width: 12),
                               Text("${thread.likesCount} likes"),
                             ],
@@ -207,6 +216,7 @@ class ThreadView extends StatelessWidget {
                         leading: CircularProfileImageWidget(
                           url: reply.user.metadata.imageUrl,
                           radius: 20,
+                          uid:thread.user.id,
                         ),
                         title: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,

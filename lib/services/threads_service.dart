@@ -1,10 +1,22 @@
+import 'dart:async';
 import 'dart:io';
+
 import 'package:get/get.dart';
 import 'package:thread_clone/models/thread_model.dart';
+import 'package:thread_clone/utils/enums.dart';
 import 'package:thread_clone/utils/mixins/supabase_mixin.dart';
+import 'package:thread_clone/utils/query_generator.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:thread_clone/utils/thread_event.dart';
 
 class ThreadsService extends GetxService with SupabaseMixin {
   static const String table = 'threads';
+  static ThreadsService get instance => Get.find<ThreadsService>();
+
+  final _controller = StreamController<ThreadEvent>.broadcast();
+  Stream<ThreadEvent> get stream => _controller.stream;
+
+  RealtimeChannel? _channel;
 
   // ---------------- CREATE THREAD ----------------
   Future<void> createThread({
@@ -19,30 +31,17 @@ class ThreadsService extends GetxService with SupabaseMixin {
       'content': content,
       'image': image,
       'allow_replies': allowReplies,
-      'likes': [],
       'is_archived': false,
       'is_edited': false,
     });
   }
 
   // ---------------- FETCH FEED ----------------
-  Future<List<ThreadModel>> fetchThreads() async {
+  Future<List<ThreadModel>> fetchFeed() async {
     try {
       final res = await supabase
           .from(table)
-          .select('''
-        id,
-        content,
-        image,
-        posted_by,
-        created_at,
-        updated_at,
-        likes,
-        comments,
-        allow_replies,
-        user:posted_by (email, metadata)
-      ''')
-
+          .select(QueryGenerator.threadWithLikesAndUser)
           .order('created_at', ascending: false);
 
       return (res as List)
@@ -54,24 +53,99 @@ class ThreadsService extends GetxService with SupabaseMixin {
     }
   }
 
+  // ---------------- START LISTENING ----------------
+  Future<void> startListening() async {
+   try{
+     _channel = supabase
+         .channel('public:$table')
+
+     // INSERT
+         .onPostgresChanges(
+       event: PostgresChangeEvent.insert,
+       schema: 'public',
+       table: table,
+       callback: (payload) async {
+         final data = payload.newRecord;
+         if (data == null) return;
+
+         final thread = await _fetchSingle(data['id']);
+         _controller.add(
+           ThreadEvent(
+             type: ThreadEventType.insert,
+             thread: thread,
+           ),
+         );
+       },
+     )
+
+     // UPDATE
+         .onPostgresChanges(
+       event: PostgresChangeEvent.update,
+       schema: 'public',
+       table: table,
+       callback: (payload) async {
+         final data = payload.newRecord;
+         if (data == null) return;
+
+         final thread = await _fetchSingle(data['id']);
+         _controller.add(
+           ThreadEvent(
+             type: ThreadEventType.update,
+             thread: thread,
+           ),
+         );
+       },
+     )
+
+     // DELETE
+         .onPostgresChanges(
+       event: PostgresChangeEvent.delete,
+       schema: 'public',
+       table: table,
+       callback: (payload) {
+         final data = payload.oldRecord;
+         if (data == null) return;
+
+         _controller.add(
+           ThreadEvent(
+             type: ThreadEventType.delete,
+             threadId: data['id'],
+           ),
+         );
+       },
+     )
+         .subscribe();
+   }catch(e){
+     Get.log('StartListening Error: $e');
+   }
+  }
+
+  // ---------------- FETCH SINGLE THREAD ----------------
+  Future<ThreadModel> _fetchSingle(dynamic id) async {
+    final res = await supabase
+        .from(table)
+        .select(QueryGenerator.threadWithLikesAndUser)
+        .eq('id', id)
+        .single();
+
+    return ThreadModel.fromJson(res);
+  }
+
+  // ---------------- STOP ----------------
+  Future<void> stopListening() async {
+    await _channel?.unsubscribe();
+    await _controller.close();
+  }
+
+
+
   // ---------------- FETCH SINGLE THREAD ----------------
   Future<ThreadModel> fetchThread(String id) async {
     final data = await getRow(
       table,
       whereColumn: 'id',
       whereValue: id,
-      select: '''
-        id,
-        content,
-        image,
-        posted_by,
-        created_at,
-        updated_at,
-        likes,
-        comments,
-        allow_replies,
-        user:posted_by (email, metadata)
-      ''',
+      select: QueryGenerator.threadWithLikesAndUser,
     );
 
     if (data == null) {
@@ -108,13 +182,9 @@ class ThreadsService extends GetxService with SupabaseMixin {
     );
   }
 
-  // ---------------- DELETE THREAD (SOFT) ----------------
+  // ---------------- DELETE THREAD ----------------
   Future<void> deleteThread(String threadId) async {
-    await deleteRow(
-      table,
-      whereColumn: 'id',
-      whereValue: threadId,
-    );
+    await deleteRow(table, whereColumn: 'id', whereValue: threadId);
   }
 
   // ---------------- UPLOAD THREAD IMAGE ----------------
@@ -127,92 +197,15 @@ class ThreadsService extends GetxService with SupabaseMixin {
     return uploadImage(file: file, bucket: bucket, folder: 'threads/$uid');
   }
 
-  // ---------------- LIKE THREAD ----------------
-  Future<void> like(String threadId) async {
-    if (!isLoggedIn) return;
-
-    try {
-      // Fetch current likes
-      final res = await supabase
-          .from('threads')
-          .select('likes')
-          .eq('id', threadId)
-          .maybeSingle(); // safer than .single(), returns null if not found
-
-      if (res == null) {
-        Get.snackbar('Error', 'Thread not found');
-        return;
-      }
-
-      // Ensure likes is a List<String>
-      final List<dynamic> currentLikes = res['likes'] ?? [];
-      final List<String> likes = currentLikes.map((e) => e.toString()).toList();
-
-      if (likes.contains(uid)) return; // already liked
-
-      likes.add(uid!);
-
-      // Update thread likes
-      await supabase
-          .from('threads')
-          .update({'likes': likes})
-          .eq('id', threadId);
-    } catch (e, st) {
-      Get.log('Like Error: $e\n$st');
-      Get.snackbar('Error', 'Failed to like thread');
-    }
-  }
-
-  // ---------------- UNLIKE THREAD ----------------
-  Future<void> unlike(String threadId) async {
-    if (!isLoggedIn) return;
-
-    try {
-      final res = await supabase
-          .from('threads')
-          .select('likes')
-          .eq('id', threadId)
-          .single();
-
-      final List likes = res['likes'] ?? [];
-
-      if (!likes.contains(uid)) return;
-
-      likes.remove(uid);
-
-      await supabase
-          .from('threads')
-          .update({'likes': likes})
-          .eq('id', threadId);
-    } catch (e) {
-      Get.log('Unlike Error: $e');
-      Get.snackbar('Error', 'Failed to unlike thread');
-    }
-  }
-
-
-
-  // ---------------- FETCH CURRENT USER THREADS ----------------
-  Future<List<ThreadModel>> fetchMyThreads() async {
+  // ---------------- FETCH MY THREADS ----------------
+  Future<List<ThreadModel>> fetchThreads(String id) async {
     if (!isLoggedIn) return [];
 
     try {
       final res = await supabase
           .from(table)
-          .select('''
-          id,
-          content,
-          image,
-          posted_by,
-          created_at,
-          updated_at,
-          likes,
-          comments,
-          allow_replies,
-          user:posted_by (email, metadata)
-        ''')
-          .eq('posted_by', uid!)
-
+          .select(QueryGenerator.threadWithLikesAndUser)
+          .eq('posted_by', id!)
           .order('created_at', ascending: false);
 
       return (res as List)
@@ -222,5 +215,13 @@ class ThreadsService extends GetxService with SupabaseMixin {
       Get.log('FetchMyThreads Error: $e');
       return [];
     }
+  }
+
+  // ---------------- CLEANUP ----------------
+  @override
+  void onClose() {
+    // _threadsController.close();
+    stopListening();
+    super.onClose();
   }
 }
