@@ -52,7 +52,7 @@ class PublicProfileView extends StatelessWidget {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
-                                controller.user.value?.metadata?.name ?? '',
+                                controller.user.value?.metadata.name ?? '',
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 25,
@@ -60,7 +60,7 @@ class PublicProfileView extends StatelessWidget {
                               ),
                               const SizedBox(height: 5),
                               Text(
-                                controller.user.value?.metadata?.description ?? '',
+                                controller.user.value?.metadata.description ?? '',
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -68,7 +68,7 @@ class PublicProfileView extends StatelessWidget {
                           ),
                         ),
                         CircularProfileImageWidget(
-                          url: controller.user.value?.metadata?.imageUrl,
+                          url: controller.user.value?.metadata.imageUrl,
                           radius: 40,
                           uid:controller.user.value?.id,
                         ),

@@ -1,10 +1,8 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:thread_clone/models/reply_model.dart';
 import 'package:thread_clone/models/thread_model.dart';
-import 'package:thread_clone/models/user_model.dart';
 import 'package:thread_clone/services/comments_service.dart';
 import 'package:thread_clone/services/notifications_service.dart';
 import 'package:thread_clone/services/thread_like_service.dart';

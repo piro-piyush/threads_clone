@@ -66,7 +66,6 @@ class ThreadsService extends GetxService with SupabaseMixin {
        table: table,
        callback: (payload) async {
          final data = payload.newRecord;
-         if (data == null) return;
 
          final thread = await _fetchSingle(data['id']);
          _controller.add(
@@ -85,8 +84,6 @@ class ThreadsService extends GetxService with SupabaseMixin {
        table: table,
        callback: (payload) async {
          final data = payload.newRecord;
-         if (data == null) return;
-
          final thread = await _fetchSingle(data['id']);
          _controller.add(
            ThreadEvent(
@@ -104,8 +101,6 @@ class ThreadsService extends GetxService with SupabaseMixin {
        table: table,
        callback: (payload) {
          final data = payload.oldRecord;
-         if (data == null) return;
-
          _controller.add(
            ThreadEvent(
              type: ThreadEventType.delete,
@@ -205,7 +200,7 @@ class ThreadsService extends GetxService with SupabaseMixin {
       final res = await supabase
           .from(table)
           .select(QueryGenerator.threadWithLikesAndUser)
-          .eq('posted_by', id!)
+          .eq('posted_by', id)
           .order('created_at', ascending: false);
 
       return (res as List)
