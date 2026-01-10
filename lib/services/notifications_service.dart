@@ -1,8 +1,10 @@
 import 'package:get/get.dart';
 import 'package:thread_clone/utils/mixins/supabase_mixin.dart';
+import 'package:thread_clone/utils/query_generator.dart';
 
 class NotificationsService extends GetxService with SupabaseMixin {
   static const String table = 'notifications';
+  static NotificationsService get instance => Get.find<NotificationsService>();
 
   // ---------------- SEND NOTIFICATION ----------------
   Future<void> sendNotification({
@@ -36,19 +38,7 @@ class NotificationsService extends GetxService with SupabaseMixin {
   Future<List<Map<String, dynamic>>> fetchNotifications() async {
     dynamic query = supabase
         .from(table)
-        .select('''
-          id,
-          from_user_id,
-          to_user_id,
-          content,
-          thread_id,
-          type,
-          has_read,
-          is_deleted,
-          created_at,
-          updated_at,
-          from_user:from_user_id (email, metadata)
-        ''')
+        .select(QueryGenerator.notification)
         .eq('to_user_id', uid!)
         .eq('is_deleted', false)
         .order('created_at', ascending: false);
@@ -93,15 +83,5 @@ class NotificationsService extends GetxService with SupabaseMixin {
     );
   }
 
-  // ---------------- COUNT UNREAD ----------------
-  // Future<int> countUnread() async {
-  //   final res = await supabase
-  //       .from(table)
-  //       .select('id', count: CountOption.exact)
-  //       .eq('to_user_id', uid)
-  //       .eq('has_read', false)
-  //       .eq('is_deleted', false);
-  //
-  //   return res.count ?? 0;
-  // }
+
 }

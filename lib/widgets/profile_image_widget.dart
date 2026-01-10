@@ -1,19 +1,23 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:extended_image/extended_image.dart';
+import 'package:get/get.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:thread_clone/routes/route_names.dart';
 
 class ProfileImageWidget extends StatelessWidget {
   const ProfileImageWidget({
     super.key,
     this.image,
     this.imageUrl,
+    this.uid,
     required this.radius,
   });
 
   final File? image;
   final String? imageUrl;
   final double radius;
+  final String? uid;
 
   @override
   Widget build(BuildContext context) {
@@ -76,13 +80,18 @@ class ProfileImageWidget extends StatelessWidget {
       );
     }
 
-    return Container(
-      padding: const EdgeInsets.all(3),
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        border: Border.all(color: Theme.of(context).dividerColor, width: 2),
+    return InkWell(
+      onTap: () {
+        Get.toNamed(RouteNames.showProfile, arguments: uid);
+      },
+      child: Container(
+        padding: const EdgeInsets.all(3),
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(color: Theme.of(context).dividerColor, width: 2),
+        ),
+        child: avatar,
       ),
-      child: avatar,
     );
   }
 }

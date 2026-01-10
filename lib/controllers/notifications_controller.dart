@@ -26,6 +26,5 @@ class NotificationsController extends GetxController {
     notifications.value = fetchedData
         .map((e) => NotificationModel.fromJson(e))
         .toList();
-    print(fetchedData.toString());
   }
 }

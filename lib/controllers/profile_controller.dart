@@ -1,16 +1,24 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:thread_clone/models/reply_model.dart';
 import 'package:thread_clone/models/thread_model.dart';
+import 'package:thread_clone/models/user_model.dart';
 import 'package:thread_clone/services/comments_service.dart';
 import 'package:thread_clone/services/notifications_service.dart';
+import 'package:thread_clone/services/thread_like_service.dart';
 import 'package:thread_clone/services/threads_service.dart';
+import 'package:thread_clone/services/user_service.dart';
 import 'package:thread_clone/utils/enums.dart';
 import 'package:thread_clone/utils/helper.dart';
+import 'package:thread_clone/utils/thread_event.dart';
 
 class ProfileController extends GetxController {
   final ThreadsService threadsService = Get.find<ThreadsService>();
   final CommentsService commentsService = Get.find<CommentsService>();
+  final ThreadLikeService threadLikeService = Get.find<ThreadLikeService>();
+  final UserService userService = Get.find<UserService>();
   final NotificationsService _notificationsService =
       Get.find<NotificationsService>();
 
@@ -23,15 +31,80 @@ class ProfileController extends GetxController {
 
   String get uid => threadsService.currentUser!.id;
 
+  RxMap<int, bool> get likesMap => threadLikeService.likesMap;
+  late final StreamSubscription<ThreadEvent> _threadSubscription;
+
+  Future<bool> Function(String threadId) get isThreadLiked =>
+      threadLikeService.isThreadLiked;
+
   @override
   void onInit() {
     super.onInit();
-    initProfileData();
+    initialize();
   }
 
   // ---------------- INIT PROFILE DATA ----------------
-  Future<void> initProfileData() async {
-    await Future.wait([fetchMyThreads(), fetchRepliedThreads()]);
+
+  Future<void> initialize() async {
+    try {
+      await threadsService.startListening();
+      _threadSubscription = threadsService.stream.listen(_handleThreadEvent);
+
+      await Future.wait([fetchMyThreads(), fetchRepliedThreads()]);
+    } catch (e) {
+      Get.log('HomeController Error: $e');
+    }
+  }
+
+  // ---------------- REALTIME EVENTS ----------------
+  /// Handles realtime insert/update/delete events
+  void _handleThreadEvent(ThreadEvent event) {
+    switch (event.type) {
+      case ThreadEventType.insert:
+        // My Threads
+        if (event.thread?.user.id == uid) {
+          myThreads.insert(0, event.thread!);
+          fillLikesMap([event.thread!]);
+        }
+
+        // Replied Threads (optional insert not needed)
+        break;
+
+      case ThreadEventType.update:
+        // Update in My Threads
+        final myIndex = myThreads.indexWhere((t) => t.id == event.thread?.id);
+        if (myIndex != -1) {
+          myThreads[myIndex] = event.thread!;
+        }
+
+        // Update embedded thread inside replies
+        for (int i = 0; i < repliedThreads.length; i++) {
+          if (repliedThreads[i].thread.id == event.thread?.id) {
+            repliedThreads[i] = repliedThreads[i].copyWith(
+              thread: event.thread!,
+            );
+          }
+        }
+        break;
+
+      case ThreadEventType.delete:
+        // Remove from My Threads
+        myThreads.removeWhere((t) => t.id == event.threadId);
+
+        // Remove replies whose thread got deleted
+        repliedThreads.removeWhere((r) => r.thread.id == event.threadId);
+        break;
+    }
+  }
+
+  Future<void> fillLikesMap(List<ThreadModel> threads) async {
+    await Future.wait(
+      threads.map((thread) async {
+        likesMap[thread.id] ??= await threadLikeService.isThreadLiked(
+          thread.id.toString(),
+        );
+      }),
+    );
   }
 
   // ---------------- FETCH MY THREADS ----------------
@@ -40,9 +113,9 @@ class ProfileController extends GetxController {
       isThreadsLoading.value = true;
       myThreads.clear();
 
-      final threads = await threadsService
-          .fetchMyThreads(); // fetch only current user's threads
+      final threads = await threadsService.fetchThreads(uid);
       myThreads.value = threads;
+      fillLikesMap(threads);
     } catch (e) {
       Get.log('fetchMyThreads Error: $e');
       myThreads.clear();
@@ -57,8 +130,10 @@ class ProfileController extends GetxController {
       isRepliesLoading.value = true;
 
       // Get all comments by current user
-      final commentsData = await commentsService.fetchReplies();
+
+      final commentsData = await commentsService.fetchReplies(uid);
       repliedThreads.value = commentsData;
+      fillLikesMap(commentsData.map((comment) => comment.thread).toList());
     } catch (e) {
       Get.log('fetchRepliedThreads Error: $e');
       repliedThreads.clear();
@@ -74,28 +149,31 @@ class ProfileController extends GetxController {
     if (index == -1) return;
 
     final currentThread = myThreads[index];
-    final alreadyLiked = currentThread.likes.contains(threadsService.uid);
+    final alreadyLiked = await threadLikeService.isThreadLiked(
+      thread.id.toString(),
+    );
 
     // 🔁 Local optimistic update
     final updatedThread = currentThread.copyWith(
-      likes: alreadyLiked
-          ? currentThread.likes.where((id) => id != threadsService.uid).toList()
-          : [...currentThread.likes, threadsService.uid!],
+      likesCount: alreadyLiked
+          ? currentThread.likesCount - 1
+          : currentThread.likesCount + 1,
     );
 
     myThreads[index] = updatedThread;
-
+    // Optimistic update
+    likesMap[thread.id] = !alreadyLiked;
     try {
       // 🔥 Server update
       if (alreadyLiked) {
-        await threadsService.unlike(thread.id.toString());
+        await threadLikeService.unlikeThread(thread.id.toString());
       } else {
-        await threadsService.like(thread.id.toString());
+        await threadLikeService.likeThread(thread.id.toString());
 
         // Send notification to thread owner
-        if (thread.postedBy != threadsService.uid) {
+        if (thread.user.id != threadsService.uid) {
           await _notificationsService.sendNotification(
-            toUserId: thread.postedBy,
+            toUserId: thread.user.id,
             threadId: thread.id.toString(),
             content: "Someone liked your thread.",
             // or NotificationType.like.description
@@ -106,6 +184,7 @@ class ProfileController extends GetxController {
     } catch (e) {
       // ❌ Rollback on error
       myThreads[index] = currentThread;
+      likesMap[thread.id] = alreadyLiked;
       Get.snackbar('Error', 'Failed to like thread');
     }
   }
@@ -115,11 +194,11 @@ class ProfileController extends GetxController {
   }
 
   bool canEditThread(ThreadModel thread) {
-    return thread.postedBy == uid;
+    return thread.user.id == uid;
   }
 
   bool canDeleteThread(ThreadModel thread) {
-    return thread.postedBy == uid;
+    return thread.user.id == uid;
   }
 
   Future<void> editThread(ThreadModel thread) async {}
@@ -164,10 +243,7 @@ class ProfileController extends GetxController {
         'Your thread has been deleted successfully',
       );
     } catch (e) {
-      showSnackBar(
-        'Error',
-        'Failed to delete thread',
-      );
+      showSnackBar('Error', 'Failed to delete thread');
     }
   }
 
@@ -204,21 +280,18 @@ class ProfileController extends GetxController {
 
     if (shouldDelete != true) return;
     try {
-    // 🔥 Call delete API here
-    await commentsService.deleteComment(reply.id.toString());
-
-    repliedThreads.removeWhere((t) => t.id == reply.id);
-
-
-    // Optional UI feedback
-    showSnackBar(
-      'Deleted',
-      'Your reply has been deleted',
-    ); } catch (e) {
-      showSnackBar(
-        'Error',
-        'Failed to delete thread',
+      // 🔥 Call delete API here
+      await commentsService.deleteComment(
+        reply.id.toString(),
+        reply.thread.id.toString(),
       );
+
+      repliedThreads.removeWhere((t) => t.id == reply.id);
+
+      // Optional UI feedback
+      showSnackBar('Deleted', 'Your reply has been deleted');
+    } catch (e) {
+      showSnackBar('Error', 'Failed to delete thread');
     }
   }
 }
