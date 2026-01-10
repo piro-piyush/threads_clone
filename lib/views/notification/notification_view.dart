@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:thread_clone/controllers/notifications_controller.dart';
+import 'package:thread_clone/routes/route_names.dart';
 import 'package:thread_clone/services/navigation_service.dart';
 import 'package:thread_clone/utils/enums.dart';
 import 'package:thread_clone/widgets/status_loader_widget.dart';
@@ -80,109 +81,128 @@ class NotificationView extends StatelessWidget {
           );
         }
 
-        return ListView.separated(
-          padding: const EdgeInsets.all(12),
-          itemCount: notifications.length,
-          physics: const BouncingScrollPhysics(),
-          separatorBuilder: (_, __) => const SizedBox(height: 12),
-          itemBuilder: (context, index) {
-            final notification = notifications[index];
-            final type = NotificationTypeExtension.fromString(
-              notification.type,
-            );
+        return RefreshIndicator(
+          onRefresh: () async => controller.init(),
+          displacement: 40,
+          edgeOffset: 20,
+          child: ListView.separated(
+            padding: const EdgeInsets.all(12),
+            itemCount: notifications.length,
+            physics: const AlwaysScrollableScrollPhysics(
+              parent: BouncingScrollPhysics(),
+            ),
+            separatorBuilder: (_, _) => const SizedBox(height: 12),
+            itemBuilder: (context, index) {
+              final notification = notifications[index];
+              final type = NotificationTypeExtension.fromString(
+                notification.type,
+              );
 
-            return InkWell(
-              onTap: () {
-                if (notification.threadId != null) {
-                  // NavigationService.navigateToThread(notification.threadId!);
-                }
-              },
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Avatar with type badge
-                  Stack(
-                    children: [
-                      CircleAvatar(
-                        radius: 24,
-                        backgroundImage:
-                            notification.fromUser?.metadata.imageUrl != null
-                            ? NetworkImage(
-                                notification.fromUser!.metadata.imageUrl,
-                              )
-                            : null,
-                        backgroundColor:
-                            notification.fromUser?.metadata.imageUrl == null
-                            ? Colors.grey[300]
-                            : null,
-                        child: notification.fromUser?.metadata.imageUrl == null
-                            ? Icon(type.icon, color: Colors.white, size: 20)
-                            : null,
-                      ),
-                      Positioned(
-                        bottom: 0,
-                        right: 0,
-                        child: CircleAvatar(
-                          radius: 10,
-                          backgroundColor: Colors.white,
-                          child: Icon(type.icon, size: 14, color: Colors.blue),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(width: 12),
-
-                  // Notification text
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+              return InkWell(
+                onTap: () {
+                  if (notification.threadId != null) {
+                    Get.toNamed(
+                      RouteNames.thread,
+                      arguments: notification.threadId,
+                    );
+                  }
+                },
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // avatar
+                    Stack(
                       children: [
-                        Text(
-                          notification.fromUser?.metadata.name ?? "",
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: notification.hasRead
-                                ? FontWeight.normal
-                                : FontWeight.bold,
-                          ),
+                        CircleAvatar(
+                          radius: 24,
+                          backgroundImage:
+                          notification.fromUser?.metadata.imageUrl != null
+                              ? NetworkImage(
+                            notification.fromUser!.metadata.imageUrl,
+                          )
+                              : null,
+                          backgroundColor:
+                          notification.fromUser?.metadata.imageUrl == null
+                              ? Colors.grey[300]
+                              : null,
+                          child:
+                          notification.fromUser?.metadata.imageUrl == null
+                              ? Icon(type.icon, color: Colors.white, size: 20)
+                              : null,
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          notification.headlineText,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey[400],
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: CircleAvatar(
+                            radius: 10,
+                            backgroundColor: Colors.white,
+                            child: Icon(
+                              type.icon,
+                              size: 14,
+                              color: Colors.blue,
+                            ),
                           ),
                         ),
                       ],
                     ),
-                  ),
+                    const SizedBox(width: 12),
 
-                  // Timestamp and unread dot
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        notification.formattedCreatedAt,
-                        style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                    // text
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            notification.fromUser?.metadata.name ?? "",
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: notification.hasRead
+                                  ? FontWeight.normal
+                                  : FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            notification.headlineText,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[400],
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 6),
-                      if (!notification.hasRead)
-                        Container(
-                          width: 10,
-                          height: 10,
-                          decoration: BoxDecoration(
-                            color: Colors.blue,
-                            shape: BoxShape.circle,
+                    ),
+
+                    // time + unread dot
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          notification.formattedCreatedAt,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[500],
                           ),
                         ),
-                    ],
-                  ),
-                ],
-              ),
-            );
-          },
+                        const SizedBox(height: 6),
+                        if (!notification.hasRead)
+                          Container(
+                            width: 10,
+                            height: 10,
+                            decoration: const BoxDecoration(
+                              color: Colors.blue,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
         );
+
       }),
     );
   }

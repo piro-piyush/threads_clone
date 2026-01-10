@@ -23,7 +23,7 @@ class HomeView extends GetView<HomeController> {
           );
         }
         return RefreshIndicator(
-          onRefresh: () async => await controller.init(),
+          onRefresh: () async => await controller.initialize(),
           child: CustomScrollView(
             slivers: [
               SliverAppBar(
@@ -111,8 +111,10 @@ class HomeView extends GetView<HomeController> {
                       canEditThread: controller.canEditThread,
                       canDeleteThread: controller.canDeleteThread,
                       editThread: controller.editThread,
-                      deleteThread: controller.deleteThread,
-
+                      deleteThread: (thread) =>
+                          controller.deleteThread(context, thread),
+                      isLiked: controller.isThreadLiked,
+                      likesMap: controller.likesMap,
                     );
                   }, childCount: controller.threads.length),
                 ),
