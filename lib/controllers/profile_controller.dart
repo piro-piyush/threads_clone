@@ -41,6 +41,13 @@ class ProfileController extends GetxController {
     initialize();
   }
 
+  @override
+  void onClose() {
+    _threadSubscription.cancel();
+    threadsService.stopListening();
+    super.onClose();
+  }
+
   // ---------------- INIT PROFILE DATA ----------------
 
   Future<void> initialize() async {
@@ -245,7 +252,7 @@ class ProfileController extends GetxController {
     }
   }
 
-  Future<void> editReply(ReplyModel reply) async {}
+  Future<void> editReply(BuildContext context,ReplyModel reply) async {}
 
   Future<void> deleteReply(BuildContext context, ReplyModel reply) async {
     final bool? shouldDelete = await showDialog<bool>(

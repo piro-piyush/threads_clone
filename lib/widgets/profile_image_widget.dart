@@ -10,14 +10,16 @@ class ProfileImageWidget extends StatelessWidget {
     super.key,
     this.image,
     this.imageUrl,
-    this.uid,
+    required this.id,
+    required this.uid,
     required this.radius,
   });
 
   final File? image;
   final String? imageUrl;
   final double radius;
-  final String? uid;
+  final String id;
+  final String uid;
 
   @override
   Widget build(BuildContext context) {

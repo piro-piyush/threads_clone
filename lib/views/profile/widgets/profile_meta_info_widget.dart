@@ -51,7 +51,8 @@ class ProfileMetaInfoWidget extends StatelessWidget {
         ),
 
         /// Right: Profile Image
-        CircularProfileImageWidget(url: imageUrl, radius: 40),
+        CircularProfileImageWidget(url: imageUrl, radius: 40,
+        onTap: (){},),
       ],
     );
   }

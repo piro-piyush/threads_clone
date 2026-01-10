@@ -286,6 +286,14 @@ class PublicProfileController extends GetxController {
     }
   }
 
+
+  Future<void> editReply(
+      BuildContext context,
+      ReplyModel reply,
+      ) async {
+
+  }
+
   // ---------------- DELETE REPLY ----------------
   Future<void> deleteReply(
       BuildContext context,

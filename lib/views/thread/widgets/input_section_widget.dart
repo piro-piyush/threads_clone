@@ -32,7 +32,7 @@ class InputSectionWidget extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       spacing: 12,
       children: [
-        CircularProfileImageWidget(url: userImageUrl, radius: 28),
+        CircularProfileImageWidget(url: userImageUrl, radius: 28,onTap: (){},),
 
         /// Thread input section
         Expanded(
