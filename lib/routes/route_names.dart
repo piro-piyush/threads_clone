@@ -8,4 +8,5 @@ class RouteNames {
   static final String addComment = "/add-comment";
   static final String thread = "/thread";
   static final String fullScreenImage = "/full-screen-image";
+  static final String showProfile = "/show-profile";
 }
