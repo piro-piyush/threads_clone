@@ -5,11 +5,18 @@ import 'package:shimmer/shimmer.dart';
 import 'package:thread_clone/routes/route_names.dart';
 
 class CircularProfileImageWidget extends StatelessWidget {
-  const CircularProfileImageWidget({super.key, this.url, this.radius = 28, this.uid});
+  const CircularProfileImageWidget({
+    super.key,
+    this.url,
+    this.radius = 28, required this.onTap,
+
+  });
 
   final String? url;
   final double radius;
-  final String? uid;
+
+  final VoidCallback onTap;
+
   @override
   Widget build(BuildContext context) {
     if (url == null || url!.isEmpty) {
@@ -20,9 +27,7 @@ class CircularProfileImageWidget extends StatelessWidget {
     }
 
     return InkWell(
-      onTap: () {
-        Get.toNamed(RouteNames.showProfile, arguments: uid);
-      },
+      onTap: onTap,
       child: ClipOval(
         child: ExtendedImage.network(
           url!,

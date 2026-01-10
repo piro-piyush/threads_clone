@@ -32,6 +32,9 @@ class EditProfileController extends GetxController {
 
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
+  String get uid => authService.user!.id;
+
+
   // ---------------- INIT ----------------
   @override
   void onInit() {

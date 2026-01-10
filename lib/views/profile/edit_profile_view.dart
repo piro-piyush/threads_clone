@@ -59,7 +59,8 @@ class EditProfileView extends StatelessWidget {
                         image: controller.selectedImage.value,
                         radius: 70,
                         imageUrl: controller.imageUrl.value,
-
+                        id: controller.uid,
+                        uid: controller.uid,
                       ),
                       Positioned(
                         bottom: 6,

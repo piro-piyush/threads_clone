@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:thread_clone/controllers/comment_controller.dart';
+import 'package:thread_clone/routes/route_names.dart';
 import 'package:thread_clone/widgets/circular_image_widget.dart';
 import 'package:thread_clone/widgets/status_loader_widget.dart';
 import 'package:thread_clone/widgets/thread_card_image_widget.dart';
@@ -58,7 +59,11 @@ class AddCommentView extends GetView<CommentController> {
                       CircularProfileImageWidget(
                         url: thread.user.metadata.imageUrl,
                         radius: 20,
-                        uid:thread.user.id,
+                        onTap: (){
+                          if (thread.user.id != controller.uid) {
+                            Get.toNamed(RouteNames.showProfile, arguments: thread.user.id);
+                          }
+                        },
                       ),
 
                       const SizedBox(width: 10),
