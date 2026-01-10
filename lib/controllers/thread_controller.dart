@@ -4,13 +4,15 @@ import 'package:thread_clone/models/reply_model.dart';
 import 'package:thread_clone/models/thread_model.dart';
 import 'package:thread_clone/services/comments_service.dart';
 import 'package:thread_clone/services/notifications_service.dart';
+import 'package:thread_clone/services/thread_like_service.dart';
 import 'package:thread_clone/services/threads_service.dart';
 import 'package:thread_clone/utils/enums.dart';
 import 'package:thread_clone/utils/helper.dart';
 
 class ThreadController extends GetxController {
   // ---------------- SERVICES ----------------
-  final ThreadsService _threadsService = Get.find();
+  final ThreadsService _threadsService = Get.find<ThreadsService>();
+  final ThreadLikeService _threadLikeService = Get.find<ThreadLikeService>();
   final CommentsService _commentsService = Get.find();
   final NotificationsService _notificationsService = Get.find();
 
@@ -27,7 +29,7 @@ class ThreadController extends GetxController {
   // ---------------- FORM ----------------
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   late final TextEditingController commentController;
-
+  RxMap<int, bool> get likesMap => _threadLikeService.likesMap;
   String get uid => _threadsService.uid ?? '';
 
   // ---------------- LIFECYCLE ----------------
@@ -90,7 +92,7 @@ class ThreadController extends GetxController {
       replies.value = await _commentsService.fetchComments(threadId);
 
       // sync comment count with backend data
-      thread.value = thread.value?.copyWith(comments: replies.length);
+      thread.value = thread.value?.copyWith(commentsCount: replies.length);
     } catch (e) {
       Get.log('FetchReplies Error: $e');
     } finally {
@@ -107,23 +109,22 @@ class ThreadController extends GetxController {
     final currentThread = thread.value;
     if (currentThread == null || uid.isEmpty) return;
 
-    final alreadyLiked = currentThread.isLiked(uid);
+    final alreadyLiked = await _threadLikeService.isThreadLiked(currentThread.id.toString());
 
     // 🔁 Optimistic update
     thread.value = currentThread.copyWith(
-      likes: alreadyLiked
-          ? currentThread.likes.where((id) => id != uid).toList()
-          : [...currentThread.likes, uid],
+      likesCount: alreadyLiked
+          ? currentThread.likesCount - 1
+          : currentThread.likesCount + 1,
     );
-
     try {
       if (alreadyLiked) {
-        await _threadsService.unlike(threadId);
+        await _threadLikeService.unlikeThread(threadId);
       } else {
-        await _threadsService.like(threadId);
+        await _threadLikeService.likeThread(threadId);
 
         await _notificationsService.sendNotification(
-          toUserId: currentThread.postedBy,
+          toUserId: currentThread.user.id,
           threadId: threadId,
           content: NotificationType.like.description,
           type: NotificationType.like.value,
@@ -217,11 +218,11 @@ class ThreadController extends GetxController {
   }
 
   bool canEditThread(ThreadModel thread) {
-    return thread.postedBy == uid;
+    return thread.user.id == uid;
   }
 
   bool canDeleteThread(ThreadModel thread) {
-    return thread.postedBy == uid;
+    return thread.user.id == uid;
   }
 
   Future<void> editReply(ReplyModel reply) async {}
@@ -258,7 +259,7 @@ class ThreadController extends GetxController {
     if (shouldDelete != true) return;
     try {
       // 🔥 Call delete API here
-      await _commentsService.deleteComment(reply.id.toString());
+      await _commentsService.deleteComment(reply.id.toString(), threadId);
       replies.removeWhere((t) => t.id == reply.id);
 
       // Optional UI feedback

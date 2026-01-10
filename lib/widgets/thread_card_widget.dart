@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:thread_clone/models/thread_model.dart';
 import 'package:thread_clone/utils/helper.dart';
 import 'package:thread_clone/widgets/thread_card_bottom_widget.dart';
@@ -21,10 +22,12 @@ class ThreadCardWidget extends StatelessWidget {
     required this.canDeleteThread,
     required this.editThread,
     required this.deleteThread,
+    required this.isLiked,
+    required this.likesMap,
   });
 
   final ThreadModel thread;
-
+  final Future<bool> Function(String threadId) isLiked;
   final Function(ThreadModel thread) onLikeTapped;
   final Function(ThreadModel thread) onCommentTapped;
   final Function(ThreadModel thread) onShareTapped;
@@ -34,7 +37,7 @@ class ThreadCardWidget extends StatelessWidget {
   final Function(ThreadModel thread) deleteThread;
   final VoidCallback onTap;
   final String uid;
-
+  final RxMap<int, bool> likesMap;
   final bool showDivider;
   final Widget? child;
 
@@ -52,6 +55,7 @@ class ThreadCardWidget extends StatelessWidget {
               CircularProfileImageWidget(
                 url: thread.user.metadata.imageUrl,
                 radius: 20,
+                uid:thread.user.id,
               ),
 
               const SizedBox(width: 10),
@@ -139,6 +143,8 @@ class ThreadCardWidget extends StatelessWidget {
                       onCommentTapped: onCommentTapped,
                       onShareTapped: onShareTapped,
                       uid: uid,
+                      isLiked: isLiked,
+                      likesMap: likesMap,
                     ),
                   ],
                 ),
