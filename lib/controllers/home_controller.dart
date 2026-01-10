@@ -160,7 +160,7 @@ class HomeController extends GetxController {
 
   // ---------------- EDIT ----------------
   Future<void> editThread(ThreadModel thread) async {
-    // TODO: Implement edit thread flow
+
   }
 
   // ---------------- DELETE ----------------
