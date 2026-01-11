@@ -34,6 +34,7 @@ class CreateThreadView extends StatelessWidget {
             return StatusLoaderWidget(title: "Uploading", subtitle: "Please wait a moment, uploading your thread", icon: Icons.upload);
           }
           return SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
             child: InputSectionWidget(
               userImageUrl: controller.userImageUrl.value,
               controller: controller.controller,
