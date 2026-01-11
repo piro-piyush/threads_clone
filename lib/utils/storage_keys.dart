@@ -1,3 +1,6 @@
+/// ---------------- STORAGE KEYS ----------------
+/// Centralized keys for GetStorage or local storage usage
 class StorageKeys {
-  static final String userSession = 'userSession';
+  /// Stores the current user's session data
+  static const String userSession = 'userSession';
 }

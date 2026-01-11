@@ -1,32 +1,61 @@
 import 'package:flutter/material.dart';
 
+/// Global dark theme for the app
 final ThemeData theme = ThemeData(
-  useMaterial3: true,
-  appBarTheme: const AppBarTheme(backgroundColor: Colors.black, elevation: 0.0, surfaceTintColor: Colors.black),
+  useMaterial3: true, // Enable Material 3 styling
+
+  // ---------------- APP BAR ----------------
+  appBarTheme: const AppBarTheme(
+    backgroundColor: Colors.black,
+    elevation: 0.0,
+    surfaceTintColor: Colors.black,
+  ),
+
+  // ---------------- GENERAL BRIGHTNESS ----------------
   brightness: Brightness.dark,
-  colorScheme: const ColorScheme.dark(brightness: Brightness.dark, surface: Colors.black, onSurface: Colors.white, surfaceTint: Colors.black12, primary: Colors.white, onPrimary: Colors.black),
+  colorScheme: const ColorScheme.dark(
+    brightness: Brightness.dark,
+    surface: Colors.black,
+    onSurface: Colors.white,
+    surfaceTint: Colors.black12,
+    primary: Colors.white,
+    onPrimary: Colors.black,
+  ),
+
+  // ---------------- NAVIGATION BAR ----------------
   navigationBarTheme: const NavigationBarThemeData(
     height: 55,
     indicatorColor: Colors.transparent,
     elevation: 5.0,
     labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
     backgroundColor: Colors.black,
-    iconTheme: WidgetStatePropertyAll<IconThemeData>(IconThemeData(color: Colors.white, size: 30)),
+    iconTheme: WidgetStatePropertyAll<IconThemeData>(
+      IconThemeData(color: Colors.white, size: 30),
+    ),
   ),
+
+  // ---------------- ELEVATED BUTTON ----------------
   elevatedButtonTheme: ElevatedButtonThemeData(
-    style: ButtonStyle(backgroundColor: WidgetStateProperty.all(Colors.white), foregroundColor: WidgetStateProperty.all(Colors.black)),
+    style: ButtonStyle(
+      backgroundColor: WidgetStatePropertyAll<Color>(Colors.white),
+      foregroundColor: WidgetStatePropertyAll<Color>(Colors.black),
+    ),
   ),
+
+  // ---------------- OUTLINED BUTTON ----------------
   outlinedButtonTheme: OutlinedButtonThemeData(
     style: ButtonStyle(
-      shape: WidgetStateProperty.all(
+      shape: WidgetStatePropertyAll<RoundedRectangleBorder>(
         RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10.0),
-          side: const BorderSide(color: Colors.transparent),
+          side: BorderSide(color: Colors.transparent),
         ),
       ),
-      backgroundColor: WidgetStateProperty.all<Color>(const Color(0xff242424)),
-      minimumSize: WidgetStateProperty.all(Size.zero),
-      padding: WidgetStateProperty.all<EdgeInsets>(const EdgeInsets.symmetric(vertical: 5, horizontal: 10)),
+      backgroundColor: WidgetStatePropertyAll<Color>(const Color(0xff242424)),
+      minimumSize: WidgetStatePropertyAll<Size>(Size.zero),
+      padding: WidgetStatePropertyAll<EdgeInsets>(
+        const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+      ),
     ),
   ),
 );
