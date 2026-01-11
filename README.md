@@ -31,14 +31,14 @@ profile management, and media uploads.
 * View public profiles.
 * Notifications stored in-app (not FCM):
 
-    * Mentions
-    * Replies
-    * Likes
-    * Follows
-    * Messages
-    * Trending
-    * Reminders
-    * System notifications
+    - Mentions
+    - Replies
+    - Likes
+    - Follows
+    - Messages
+    - Trending
+    - Reminders
+    - System notifications
 
 ### UI & UX
 
@@ -96,21 +96,21 @@ dependencies:
 
 > All screenshots are stored in `assets/screenshots/` folder.
 
-| Screen        | Screenshot                                            |
-|---------------|-------------------------------------------------------|
-| Login         | ![Login](assets/screenshots/login.png)                |
-| Register      | ![Register](assets/screenshots/register.png)          |
-| Home          | ![Home](assets/screenshots/home.png)                  |
-| Search        | ![Search](assets/screenshots/search.png)              |
-| Notifications | ![Notifications](assets/screenshots/notification.png) |
-| Profile       | ![Profile](assets/screenshots/profile.png)            |
-| Edit Profile  | ![Edit Profile](assets/screenshots/profile_edit.png)  |
-| Settings      | ![Settings](assets/screenshots/settings.png)          |
-| Thread View   | ![Thread](assets/screenshots/thread_view.png)         |
-| My Replies    | ![My Replies](assets/screenshots/my_replies.png)      |
-| My Threads    | ![My Threads](assets/screenshots/my_threads.png)      |
-| Create Thread | ![Create Thread](assets/screenshots/create-thread.png)|
-| View Profile  | ![View Profile](assets/screenshots/show_profile.png)  |
+| Screen        | Screenshot |
+|---------------|------------|
+| Login         | <img src="assets/screenshots/login.png" width="150" /> |
+| Register      | <img src="assets/screenshots/register.png" width="150" /> |
+| Home          | <img src="assets/screenshots/home.png" width="150" /> |
+| Search        | <img src="assets/screenshots/search.png" width="150" /> |
+| Notifications | <img src="assets/screenshots/notification.png" width="150" /> |
+| Profile       | <img src="assets/screenshots/profile.png" width="150" /> |
+| Edit Profile  | <img src="assets/screenshots/profile_edit.png" width="150" /> |
+| Settings      | <img src="assets/screenshots/settings.png" width="150" /> |
+| Thread View   | <img src="assets/screenshots/thread_view.png" width="150" /> |
+| My Replies    | <img src="assets/screenshots/my_replies.png" width="150" /> |
+| My Threads    | <img src="assets/screenshots/my_threads.png" width="150" /> |
+| Create Thread | <img src="assets/screenshots/create-thread.png" width="150" /> |
+| View Profile  | <img src="assets/screenshots/show_profile.png" width="150" /> |
 
 ---
 
