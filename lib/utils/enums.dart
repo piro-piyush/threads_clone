@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+/// ---------------- NOTIFICATION TYPES ----------------
 enum NotificationType {
   mention,
   reply,
@@ -11,13 +12,17 @@ enum NotificationType {
   system,
 }
 
+/// ---------------- THREAD EVENTS ----------------
 enum ThreadEventType {
   insert,
   update,
   delete,
 }
+
+/// ---------------- EXTENSIONS FOR NOTIFICATIONTYPE ----------------
 extension NotificationTypeExtension on NotificationType {
-  // Friendly title
+
+  /// Friendly title to display in UI
   String get title {
     switch (this) {
       case NotificationType.mention:
@@ -39,7 +44,7 @@ extension NotificationTypeExtension on NotificationType {
     }
   }
 
-  // Flutter icon
+  /// Icon to use in Flutter UI
   IconData get icon {
     switch (this) {
       case NotificationType.mention:
@@ -61,7 +66,7 @@ extension NotificationTypeExtension on NotificationType {
     }
   }
 
-  // Description
+  /// Description for the notification
   String get description {
     switch (this) {
       case NotificationType.mention:
@@ -83,10 +88,10 @@ extension NotificationTypeExtension on NotificationType {
     }
   }
 
-  // Convert enum to string
+  /// Convert enum to string
   String get value => name;
 
-  // Convert string to enum
+  /// Convert string back to enum
   static NotificationType fromString(String str) {
     return NotificationType.values.firstWhere(
           (e) => e.name == str,

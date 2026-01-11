@@ -62,7 +62,7 @@ class NotificationView extends StatelessWidget {
                   ),
                   const SizedBox(height: 20),
                   ElevatedButton.icon(
-                    onPressed: controller.init,
+                    onPressed: controller.initialize,
                     icon: Icon(Icons.refresh),
                     label: Text("Refresh"),
                     style: ElevatedButton.styleFrom(
@@ -82,7 +82,7 @@ class NotificationView extends StatelessWidget {
         }
 
         return RefreshIndicator(
-          onRefresh: () async => controller.init(),
+          onRefresh: () async => controller.initialize(),
           displacement: 40,
           edgeOffset: 20,
           child: ListView.separated(

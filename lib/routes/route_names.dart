@@ -1,12 +1,19 @@
 class RouteNames {
-  static final String home = "/";
-  static final String login = "/login";
-  static final String register = "/register";
-  static final String editProfile = "/edit-profile";
-  static final String settings = "/settings";
-  static final String changePassword = "/change-password";
-  static final String addComment = "/add-comment";
-  static final String thread = "/thread";
-  static final String fullScreenImage = "/full-screen-image";
-  static final String showProfile = "/show-profile";
+  // Auth
+  static const login = "/login";
+  static const register = "/register";
+  static const changePassword = "/change-password";
+
+  // Main
+  static const home = "/";
+  static const settings = "/settings";
+
+  // Profile
+  static const editProfile = "/edit-profile";
+  static const showProfile = "/show-profile";
+
+  // Threads
+  static const thread = "/thread";
+  static const addComment = "/add-comment";
+  static const fullScreenImage = "/full-screen-image";
 }
