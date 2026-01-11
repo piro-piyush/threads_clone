@@ -2,40 +2,74 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:thread_clone/services/auth_service.dart';
 import 'package:thread_clone/services/user_service.dart';
 import 'package:thread_clone/utils/env.dart';
 import 'package:thread_clone/utils/helper.dart';
 import 'package:uuid/uuid.dart';
 
+/// EditProfileController manages the complete
+/// edit-profile flow.
+///
+/// Responsibilities:
+/// - Initialize user profile data
+/// - Track form & image changes
+/// - Upload / replace profile image
+/// - Update user metadata safely
+/// - Handle UI loading & errors
+///
+/// Built with GetX for reactive updates and
+/// Supabase for auth & storage operations.
 class EditProfileController extends GetxController {
+  /// Auth service to access current user session
   final AuthService authService = Get.find<AuthService>();
+
+  /// User service for profile & storage operations
   final UserService userService = Get.find<UserService>();
 
+  // ---------------- UI CONTROLLERS ----------------
 
-  // UI Controllers (ONLY HERE)
+  /// Controller for name input
   late TextEditingController nameController;
+
+  /// Controller for description/bio input
   late TextEditingController descriptionController;
+
+  /// Controller for email input (read-only)
   late TextEditingController emailController;
 
-  // Initial values (for change detection)
+  // ---------------- INITIAL STATE ----------------
+
+  /// Initial name for change detection
   late String _initialName;
+
+  /// Initial description for change detection
   late String _initialDescription;
+
+  /// Initial profile image URL
   late String _initialImageUrl;
 
-  // Image state
+  // ---------------- IMAGE STATE ----------------
+
+  /// Selected new profile image file
   final Rx<File?> selectedImage = Rx<File?>(null);
+
+  /// Current profile image URL
   final Rx<String?> imageUrl = Rx<String?>(null);
 
+  // ---------------- STATE ----------------
+
+  /// Loading state for profile update
   final RxBool isUpdating = false.obs;
 
+  /// Form key for validation
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
+  /// Current user ID
   String get uid => authService.user!.id;
 
-
   // ---------------- INIT ----------------
+
   @override
   void onInit() {
     super.onInit();
@@ -53,18 +87,30 @@ class EditProfileController extends GetxController {
     imageUrl.value = _initialImageUrl;
   }
 
-  // ---------------- CHANGE CHECK ----------------
+  // ---------------- CHANGE DETECTION ----------------
+
+  /// Checks whether any profile field has changed.
+  ///
+  /// Used to prevent unnecessary API calls.
   bool hasProfileChanged() {
     final nameChanged = nameController.text.trim() != _initialName;
-    final descChanged = descriptionController.text.trim() != _initialDescription;
+    final descChanged =
+        descriptionController.text.trim() != _initialDescription;
 
-    // 🔹 Image changed if new file selected or URL changed
-    final imageChanged = (selectedImage.value != null) || (imageUrl.value != _initialImageUrl);
+    /// Image considered changed if:
+    /// - New image selected
+    /// - Existing image URL modified
+    final imageChanged =
+        (selectedImage.value != null) || (imageUrl.value != _initialImageUrl);
 
     return nameChanged || descChanged || imageChanged;
   }
 
   // ---------------- IMAGE PICK ----------------
+
+  /// Picks a profile image from the given source.
+  ///
+  /// Automatically closes bottom sheet if open.
   Future<void> pickProfileImage(ImageSource source) async {
     final image = await pickImage(source);
     if (image == null) return;
@@ -75,6 +121,16 @@ class EditProfileController extends GetxController {
   }
 
   // ---------------- SAVE PROFILE ----------------
+
+  /// Saves profile changes.
+  ///
+  /// Flow:
+  /// 1. Check for changes
+  /// 2. Validate form
+  /// 3. Upload new image (if any)
+  /// 4. Delete old image (if replaced)
+  /// 5. Update auth metadata
+  /// 6. Sync local state
   Future<void> saveProfile() async {
     if (isUpdating.value) return;
 
@@ -88,19 +144,25 @@ class EditProfileController extends GetxController {
     isUpdating.value = true;
 
     try {
-      final uid = authService.user!.id;
       String? finalImageUrl = imageUrl.value;
 
-      // ---------------- UPLOAD IMAGE IF NEW ----------------
+      // ---------- UPLOAD IMAGE IF CHANGED ----------
       if (selectedImage.value != null && selectedImage.value!.existsSync()) {
         final fileName = "${const Uuid().v4()}.jpg";
         final tempPath = "${Directory.systemTemp.path}/$fileName";
 
-        final compressedFile = await compressImage(selectedImage.value!, tempPath);
+        final compressedFile = await compressImage(
+          selectedImage.value!,
+          tempPath,
+        );
 
-        final uploadedUrl = await userService.uploadImage(file: compressedFile, bucket: Env.s3Bucket, folder: 'users/$uid/profile-images');
+        final uploadedUrl = await userService.uploadImage(
+          file: compressedFile,
+          bucket: Env.s3Bucket,
+          folder: 'users/$uid/profile-images',
+        );
 
-        // Delete old image if exists
+        /// Delete old image if replaced
         if (_initialImageUrl.isNotEmpty && _initialImageUrl != uploadedUrl) {
           await userService.deleteFile(Env.s3Bucket, _initialImageUrl);
         }
@@ -109,7 +171,7 @@ class EditProfileController extends GetxController {
         imageUrl.value = uploadedUrl;
       }
 
-      // ---------------- ONLY UPDATE IF DATA CHANGED ----------------
+      // ---------- BUILD UPDATE PAYLOAD ----------
       final Map<String, dynamic> updatedData = {};
 
       if (_initialName != nameController.text.trim()) {
@@ -122,12 +184,11 @@ class EditProfileController extends GetxController {
         updatedData['image_url'] = finalImageUrl;
       }
 
+      // ---------- UPDATE PROFILE ----------
       if (updatedData.isNotEmpty) {
-        // Update via Supabase Auth user metadata
         await userService.updateProfile(updatedData);
-        // await authService.supabase.auth.updateUser(UserAttributes(data: updatedData));
 
-        // Update local initial values
+        /// Sync local initial state
         _initialName = nameController.text.trim();
         _initialDescription = descriptionController.text.trim();
         _initialImageUrl = finalImageUrl ?? '';
@@ -135,12 +196,6 @@ class EditProfileController extends GetxController {
 
       Get.back();
       showSnackBar("Success", "Profile updated successfully ✅");
-    } on StorageException catch (e) {
-      debugPrint("❌ Storage error: $e");
-      Get.snackbar("Error", "Failed to upload image ❌");
-    } on AuthException catch (e) {
-      debugPrint("❌ Auth error: $e");
-      Get.snackbar("Error", "Failed to update profile ❌");
     } catch (e, s) {
       debugPrint("❌ Profile save error: $e");
       debugPrintStack(stackTrace: s);
@@ -150,6 +205,8 @@ class EditProfileController extends GetxController {
     }
   }
 
+  // ---------------- CLEANUP ----------------
+
   @override
   void onClose() {
     nameController.dispose();
@@ -157,6 +214,4 @@ class EditProfileController extends GetxController {
     emailController.dispose();
     super.onClose();
   }
-
-
 }

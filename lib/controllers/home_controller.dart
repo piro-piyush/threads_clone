@@ -10,34 +10,54 @@ import 'package:thread_clone/utils/enums.dart';
 import 'package:thread_clone/utils/helper.dart';
 import 'package:thread_clone/utils/thread_event.dart';
 
-/// Controller responsible for:
-/// - Fetching threads
-/// - Listening to realtime thread updates
-/// - Handling likes, delete & permissions
+/// HomeController handles the entire home feed lifecycle.
+///
+/// Responsibilities:
+/// - Fetching threads for home feed
+/// - Listening to realtime thread events (insert/update/delete)
+/// - Managing likes with optimistic UI
+/// - Handling delete permissions & actions
+/// - Triggering notifications on interactions
+///
+/// Uses:
+/// - GetX for state management
+/// - Supabase realtime streams (via ThreadsService)
+/// - Optimistic UI patterns for better UX
 class HomeController extends GetxController {
   // ---------------- SERVICES ----------------
+
+  /// Handles fetching threads & realtime events
   final ThreadsService _threadsService = Get.find();
+
+  /// Handles like/unlike logic & caching liked state
   final ThreadLikeService _likeService = Get.find();
+
+  /// Handles notifications (like, comment, etc.)
   final NotificationsService _notificationService = Get.find();
 
   // ---------------- STATE ----------------
-  /// All threads shown on home feed
+
+  /// Threads displayed on home feed
   final RxList<ThreadModel> threads = <ThreadModel>[].obs;
 
   /// Loading indicator for initial fetch
   final RxBool isLoading = true.obs;
 
+  /// Cached map: threadId → liked/unliked
   RxMap<int, bool> get likesMap => _likeService.likesMap;
 
-  /// Current logged in user id
+  /// Current logged-in user ID
   String get uid => _threadsService.currentUser!.id;
 
+  /// Realtime thread events subscription
   late final StreamSubscription<ThreadEvent> _threadSubscription;
 
+  /// Helper to check if a thread is liked
   Future<bool> Function(String threadId) get isThreadLiked =>
       _likeService.isThreadLiked;
 
   // ---------------- LIFECYCLE ----------------
+
   @override
   void onInit() {
     super.onInit();
@@ -51,7 +71,9 @@ class HomeController extends GetxController {
     super.onClose();
   }
 
-  // ---------------- INIT ----------------
+  // ---------------- INITIALIZATION ----------------
+
+  /// Starts realtime listener and loads initial feed
   Future<void> initialize() async {
     try {
       await _threadsService.startListening();
@@ -64,7 +86,8 @@ class HomeController extends GetxController {
   }
 
   // ---------------- REALTIME EVENTS ----------------
-  /// Handles realtime insert/update/delete events
+
+  /// Handles realtime thread insert/update/delete events
   void _handleThreadEvent(ThreadEvent event) {
     switch (event.type) {
       case ThreadEventType.insert:
@@ -85,7 +108,8 @@ class HomeController extends GetxController {
   }
 
   // ---------------- FETCH ----------------
-  /// Fetch threads & prefill likes state
+
+  /// Fetches threads for home feed and initializes like state
   Future<void> fetchThreads() async {
     isLoading.value = true;
 
@@ -97,7 +121,9 @@ class HomeController extends GetxController {
     isLoading.value = false;
   }
 
-  /// Prefills likesMap for all visible threads
+  /// Prefills likesMap for visible threads
+  ///
+  /// Prevents flickering when scrolling
   Future<void> _fillLikesMap(List<ThreadModel> threads) async {
     await Future.wait(
       threads.map((thread) async {
@@ -109,7 +135,10 @@ class HomeController extends GetxController {
   }
 
   // ---------------- LIKE ACTION ----------------
-  /// Optimistic like/unlike handler
+
+  /// Handles like/unlike with optimistic UI updates
+  ///
+  /// Rolls back UI state on failure
   Future<void> onLikeTapped(ThreadModel thread) async {
     final index = threads.indexWhere((t) => t.id == thread.id);
     if (index == -1) return;
@@ -131,7 +160,7 @@ class HomeController extends GetxController {
       } else {
         await _likeService.likeThread(thread.id.toString());
 
-        // Fire & forget notification
+        /// Fire-and-forget notification
         _notificationService
             .sendNotification(
               toUserId: thread.user.id,
@@ -149,21 +178,31 @@ class HomeController extends GetxController {
   }
 
   // ---------------- SHARE ----------------
+
+  /// Placeholder for share functionality
   void onShareTapped(ThreadModel thread) {
     showSnackBar('Coming Soon', 'Share feature coming soon');
   }
 
   // ---------------- PERMISSIONS ----------------
+
+  /// Checks if current user can edit the thread
   bool canEditThread(ThreadModel thread) => thread.user.id == uid;
 
+  /// Checks if current user can delete the thread
   bool canDeleteThread(ThreadModel thread) => thread.user.id == uid;
 
   // ---------------- EDIT ----------------
-  Future<void> editThread(ThreadModel thread) async {
 
+  /// Thread edit flow (to be implemented)
+  Future<void> editThread(ThreadModel thread) async {
+    // Navigate to edit screen
+    // Pass thread as argument
   }
 
   // ---------------- DELETE ----------------
+
+  /// Deletes a thread after confirmation
   Future<void> deleteThread(BuildContext context, ThreadModel thread) async {
     final bool? shouldDelete = await showDialog<bool>(
       context: context,

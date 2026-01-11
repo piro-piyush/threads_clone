@@ -11,16 +11,30 @@ import 'package:get/get.dart';
 
 import 'bindings/general_bindings.dart';
 
+/// Entry point of the application
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  try {
+    WidgetsFlutterBinding.ensureInitialized();
 
-  await dotenv.load(fileName: '.env');
-  await Supabase.initialize(url: Env.supabaseUrl, anonKey: Env.supabaseKey);
-  await GetStorage.init();
+    // Load environment variables from .env
+    await dotenv.load(fileName: '.env');
 
-  runApp(const MyApp());
+    // Initialize Supabase with the URL and anon key
+    await Supabase.initialize(url: Env.supabaseUrl, anonKey: Env.supabaseKey);
+
+    // Initialize local storage
+    await GetStorage.init();
+
+    runApp(const MyApp());
+  } catch (e, stackTrace) {
+    // Log full error
+    print('Error during app initialization: $e');
+    print('Stack trace: $stackTrace');
+    runApp(const MyApp());
+  }
 }
 
+/// Root widget of the application
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -28,11 +42,21 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetMaterialApp(
       title: 'Thread Clone',
-      getPages: Routes.pages,
       debugShowCheckedModeBanner: false,
+
+      /// App theme
       theme: theme,
+
+      /// Named routes
+      getPages: Routes.pages,
+
+      /// Global dependency injections
       initialBinding: GeneralBindings(),
-      initialRoute: StorageService.isLoggedIn? RouteNames.home : RouteNames.login,
+
+      /// Decide initial route based on user login state
+      initialRoute: StorageService.isLoggedIn
+          ? RouteNames.home
+          : RouteNames.login,
     );
   }
 }
