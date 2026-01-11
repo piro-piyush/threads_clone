@@ -1,22 +1,47 @@
 import 'package:thread_clone/models/user_model.dart';
 
+/// ThreadModel represents a single thread/post in the application.
+///
+/// It contains:
+/// - Core thread content (text & image)
+/// - Engagement metadata (likes, comments)
+/// - Author information
+/// - Timestamps for creation & updates
+///
+/// This model is immutable and optimized for
+/// backend-driven state updates.
 class ThreadModel {
+  /// Unique identifier of the thread
   final int id;
+
+  /// Text content of the thread
   final String content;
+
+  /// Optional image URL attached to the thread
   final String? image;
-  // final String postedBy;
+
+  /// Timestamp when the thread was created
   final DateTime createdAt;
+
+  /// Timestamp when the thread was last updated (nullable)
   final DateTime? updatedAt;
+
+  /// Total number of likes on the thread
   final int likesCount;
+
+  /// Total number of comments on the thread
   final int commentsCount;
+
+  /// Flag to control whether replies are allowed
   final bool allowReplies;
+
+  /// User who created the thread
   final UserModel user;
 
   ThreadModel({
     required this.id,
     required this.content,
     this.image,
-    // required this.postedBy,
     required this.createdAt,
     this.updatedAt,
     this.likesCount = 0,
@@ -25,11 +50,16 @@ class ThreadModel {
     required this.user,
   });
 
+  // ---------------- FROM JSON ----------------
+
+  /// Creates a ThreadModel instance from JSON.
+  ///
+  /// Typically used when fetching threads along with
+  /// joined user data from the backend.
   factory ThreadModel.fromJson(Map<String, dynamic> json) => ThreadModel(
     id: json['id'] as int,
     content: json['content'] as String,
     image: json['image'] as String?,
-    // postedBy: json['posted_by'] as String,
     createdAt: DateTime.parse(json['created_at'] as String),
     updatedAt: json['updated_at'] != null
         ? DateTime.parse(json['updated_at'] as String)
@@ -40,11 +70,18 @@ class ThreadModel {
     user: UserModel.fromJson(json['user'] as Map<String, dynamic>),
   );
 
+  // ---------------- TO JSON ----------------
+
+  /// Converts ThreadModel into JSON format.
+  ///
+  /// Useful for:
+  /// - API requests
+  /// - Local caching
+  /// - Debugging
   Map<String, dynamic> toJson() => {
     'id': id,
     'content': content,
     'image': image,
-    // 'posted_by': postedBy,
     'created_at': createdAt.toIso8601String(),
     'updated_at': updatedAt?.toIso8601String(),
     'likes_count': likesCount,
@@ -53,6 +90,15 @@ class ThreadModel {
     'user': user.toJson(),
   };
 
+  // ---------------- HELPERS ----------------
+
+  /// Returns a human-readable creation time
+  ///
+  /// Examples:
+  /// - "30s ago"
+  /// - "2h ago"
+  /// - "Yesterday"
+  /// - "12/1/2026"
   String get formattedCreatedAt {
     final now = DateTime.now();
     final diff = now.difference(createdAt);
@@ -68,23 +114,21 @@ class ThreadModel {
     } else if (diff.inDays < 7) {
       return "${diff.inDays}d ago";
     } else {
-      // Format as "Jan 9, 2026" if older than a week
       return "${createdAt.day}/${createdAt.month}/${createdAt.year}";
     }
   }
 
-  // bool isLiked(String uid) {
-  //   return true;
-  // }
-
+  /// Indicates whether the thread was edited after creation
   bool get isEdited => updatedAt != null;
 
-  /// ------------------ COPY WITH ------------------
+  // ---------------- COPY WITH ----------------
+
+  /// Creates a new ThreadModel with updated fields
+  /// while keeping the object immutable.
   ThreadModel copyWith({
     int? id,
     String? content,
     String? image,
-    // String? postedBy,
     DateTime? createdAt,
     DateTime? updatedAt,
     int? likesCount,
@@ -96,7 +140,6 @@ class ThreadModel {
       id: id ?? this.id,
       content: content ?? this.content,
       image: image ?? this.image,
-      // postedBy: postedBy ?? this.postedBy,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       likesCount: likesCount ?? this.likesCount,

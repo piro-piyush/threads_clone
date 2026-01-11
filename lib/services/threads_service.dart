@@ -9,16 +9,20 @@ import 'package:thread_clone/utils/query_generator.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:thread_clone/utils/thread_event.dart';
 
+/// Service to manage threads: creation, fetching, updating, real-time events, and image uploads.
 class ThreadsService extends GetxService with SupabaseMixin {
   static const String table = 'threads';
+
   static ThreadsService get instance => Get.find<ThreadsService>();
 
   final _controller = StreamController<ThreadEvent>.broadcast();
+
   Stream<ThreadEvent> get stream => _controller.stream;
 
   RealtimeChannel? _channel;
 
   // ---------------- CREATE THREAD ----------------
+  /// Creates a new thread with optional image and replies settings.
   Future<void> createThread({
     required String content,
     String? image,
@@ -37,6 +41,7 @@ class ThreadsService extends GetxService with SupabaseMixin {
   }
 
   // ---------------- FETCH FEED ----------------
+  /// Fetches all threads for the feed, newest first.
   Future<List<ThreadModel>> fetchFeed() async {
     try {
       final res = await supabase
@@ -48,71 +53,65 @@ class ThreadsService extends GetxService with SupabaseMixin {
           .map((e) => ThreadModel.fromJson(Map<String, dynamic>.from(e)))
           .toList();
     } catch (e) {
-      Get.log('FetchThreads Error: $e');
+      Get.log('FetchFeed Error: $e');
       return [];
     }
   }
 
-  // ---------------- START LISTENING ----------------
+  // ---------------- REAL-TIME LISTENING ----------------
+  /// Subscribes to real-time INSERT, UPDATE, DELETE events on threads.
   Future<void> startListening() async {
-   try{
-     _channel = supabase
-         .channel('public:$table')
+    try {
+      _channel = supabase
+          .channel('public:$table')
+          // INSERT
+          .onPostgresChanges(
+            event: PostgresChangeEvent.insert,
+            schema: 'public',
+            table: table,
+            callback: (payload) async {
+              final thread = await _fetchSingle(payload.newRecord['id']);
+              _controller.add(
+                ThreadEvent(type: ThreadEventType.insert, thread: thread),
+              );
+            },
+          )
+          // UPDATE
+          .onPostgresChanges(
+            event: PostgresChangeEvent.update,
+            schema: 'public',
+            table: table,
+            callback: (payload) async {
+              final thread = await _fetchSingle(payload.newRecord['id']);
+              _controller.add(
+                ThreadEvent(type: ThreadEventType.update, thread: thread),
+              );
+            },
+          )
+          // DELETE
+          .onPostgresChanges(
+            event: PostgresChangeEvent.delete,
+            schema: 'public',
+            table: table,
+            callback: (payload) {
+              _controller.add(
+                ThreadEvent(
+                  type: ThreadEventType.delete,
+                  threadId: payload.oldRecord['id'],
+                ),
+              );
+            },
+          )
+          .subscribe();
+    } catch (e) {
+      Get.log('StartListening Error: $e');
+    }
+  }
 
-     // INSERT
-         .onPostgresChanges(
-       event: PostgresChangeEvent.insert,
-       schema: 'public',
-       table: table,
-       callback: (payload) async {
-         final data = payload.newRecord;
-
-         final thread = await _fetchSingle(data['id']);
-         _controller.add(
-           ThreadEvent(
-             type: ThreadEventType.insert,
-             thread: thread,
-           ),
-         );
-       },
-     )
-
-     // UPDATE
-         .onPostgresChanges(
-       event: PostgresChangeEvent.update,
-       schema: 'public',
-       table: table,
-       callback: (payload) async {
-         final data = payload.newRecord;
-         final thread = await _fetchSingle(data['id']);
-         _controller.add(
-           ThreadEvent(
-             type: ThreadEventType.update,
-             thread: thread,
-           ),
-         );
-       },
-     )
-
-     // DELETE
-         .onPostgresChanges(
-       event: PostgresChangeEvent.delete,
-       schema: 'public',
-       table: table,
-       callback: (payload) {
-         final data = payload.oldRecord;
-         _controller.add(
-           ThreadEvent(
-             type: ThreadEventType.delete,
-             threadId: data['id'],
-           ),
-         );
-       },
-     )
-         .subscribe();
-   }catch(e){
-     Get.log('StartListening Error: $e');
-   }
+  /// Stops real-time subscription and closes controller.
+  Future<void> stopListening() async {
+    await _channel?.unsubscribe();
+    await _controller.close();
   }
 
   // ---------------- FETCH SINGLE THREAD ----------------
@@ -122,19 +121,10 @@ class ThreadsService extends GetxService with SupabaseMixin {
         .select(QueryGenerator.threadWithLikesAndUser)
         .eq('id', id)
         .single();
-
     return ThreadModel.fromJson(res);
   }
 
-  // ---------------- STOP ----------------
-  Future<void> stopListening() async {
-    await _channel?.unsubscribe();
-    await _controller.close();
-  }
-
-
-
-  // ---------------- FETCH SINGLE THREAD ----------------
+  /// Public method to fetch a single thread by ID
   Future<ThreadModel> fetchThread(String id) async {
     final data = await getRow(
       table,
@@ -143,14 +133,12 @@ class ThreadsService extends GetxService with SupabaseMixin {
       select: QueryGenerator.threadWithLikesAndUser,
     );
 
-    if (data == null) {
-      throw Exception('Thread not found');
-    }
+    if (data == null) throw Exception('Thread not found');
 
     return ThreadModel.fromJson(data);
   }
 
-  // ---------------- UPDATE THREAD ----------------
+  // ---------------- UPDATE / ARCHIVE / DELETE ----------------
   Future<void> updateThread({
     required String threadId,
     required String content,
@@ -167,7 +155,6 @@ class ThreadsService extends GetxService with SupabaseMixin {
     );
   }
 
-  // ---------------- ARCHIVE THREAD ----------------
   Future<void> archiveThread(String threadId) async {
     await updateRow(
       table,
@@ -177,7 +164,6 @@ class ThreadsService extends GetxService with SupabaseMixin {
     );
   }
 
-  // ---------------- DELETE THREAD ----------------
   Future<void> deleteThread(String threadId) async {
     await deleteRow(table, whereColumn: 'id', whereValue: threadId);
   }
@@ -188,26 +174,25 @@ class ThreadsService extends GetxService with SupabaseMixin {
     required String bucket,
   }) async {
     if (!isLoggedIn) throw Exception("User not logged in");
-
     return uploadImage(file: file, bucket: bucket, folder: 'threads/$uid');
   }
 
-  // ---------------- FETCH MY THREADS ----------------
-  Future<List<ThreadModel>> fetchThreads(String id) async {
+  // ---------------- FETCH THREADS BY USER ----------------
+  Future<List<ThreadModel>> fetchThreads(String userId) async {
     if (!isLoggedIn) return [];
 
     try {
       final res = await supabase
           .from(table)
           .select(QueryGenerator.threadWithLikesAndUser)
-          .eq('posted_by', id)
+          .eq('posted_by', userId)
           .order('created_at', ascending: false);
 
       return (res as List)
           .map((e) => ThreadModel.fromJson(Map<String, dynamic>.from(e)))
           .toList();
     } catch (e) {
-      Get.log('FetchMyThreads Error: $e');
+      Get.log('FetchThreadsByUser Error: $e');
       return [];
     }
   }
@@ -215,7 +200,6 @@ class ThreadsService extends GetxService with SupabaseMixin {
   // ---------------- CLEANUP ----------------
   @override
   void onClose() {
-    // _threadsController.close();
     stopListening();
     super.onClose();
   }
